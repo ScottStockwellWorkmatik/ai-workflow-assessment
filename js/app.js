@@ -742,7 +742,7 @@
   }
 
   // ---------- tabs and init
-  var TABS = ['workflows', 'assess', 'results', 'compare', 'guide'];
+  var TABS = ['workflows', 'assess', 'results', 'compare', 'guide', 'toolkit'];
   function showTab(name) {
     TABS.forEach(function (t) { var on = t === name; $('tab-' + t).setAttribute('aria-selected', on ? 'true' : 'false'); $('tab-' + t).tabIndex = on ? 0 : -1; $('panel-' + t).hidden = !on; });
     if (name === 'assess') renderAssess();
@@ -775,6 +775,7 @@
     $('btnGoAssess').addEventListener('click', function () { showTab('assess'); });
     $('btnGoResults').addEventListener('click', function () { showTab('results'); });
     $('btnDownload').addEventListener('click', download);
+    $('btnDownloadToolkit').addEventListener('click', download);
     $('btnLoad').addEventListener('click', function () { $('fileInput').click(); });
     $('fileInput').addEventListener('change', function (e) { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
     $('btnReset').addEventListener('click', function () {

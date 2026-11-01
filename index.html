@@ -46,6 +46,7 @@
     <button class="tab" role="tab" id="tab-results" aria-controls="panel-results" aria-selected="false" tabindex="-1">Results</button>
     <button class="tab" role="tab" id="tab-compare" aria-controls="panel-compare" aria-selected="false" tabindex="-1">Compare</button>
     <button class="tab" role="tab" id="tab-guide" aria-controls="panel-guide" aria-selected="false" tabindex="-1">How to use</button>
+    <button class="tab" role="tab" id="tab-toolkit" aria-controls="panel-toolkit" aria-selected="false" tabindex="-1">Back to AI Toolkit</button>
   </div>
 
   <!-- Workflows -->
@@ -243,7 +244,22 @@
       <h2>About your data</h2>
       <p>This page has no server, no account and no tracking. Your entries exist only in this browser tab and are lost when you close or refresh it, unless you download the XLSX. Loaded files are read locally and never uploaded.</p>
     </div>
+      <div class="card">
+      <h2>Back to AI Toolkit</h2>
+      <p>The last tab, <em>Back to AI Toolkit</em>, takes you back to the Workmatik AI Toolkit: the guided path through all the Workmatik tools. Open it when you have finished here and want the next step. It shows what to do next and where to load your downloaded files to build the overall strategy.</p>
+      <p class="hint">Opening it does not save anything. Download your results first, because this page does not keep them once you leave it.</p>
+    </div>
   </section>
+
+  <section id="panel-toolkit" role="tabpanel" aria-labelledby="tab-toolkit" hidden>
+    <div class="card">
+      <h2>Back to the AI Toolkit</h2>
+      <p>The AI Toolkit guides you through the Workmatik AI Assessments in sequence and joins your downloaded files into one AI strategy.</p>
+      <p><strong>Before you leave:</strong> Use the &lsquo;Download Results&rsquo; button to save your current assessment if you haven&rsquo;t already. This page does not keep your scores once you close it.</p>
+      <div class="actions"><button class="btn" id="btnDownloadToolkit" type="button">Download Results (XLSX)</button> <a class="btn primary" style="text-decoration:none" href="https://scottstockwellworkmatik.github.io/workmatik-ai-toolkit/">Back to AI Toolkit</a></div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
@@ -254,6 +270,6 @@
 
 <script src="lib/xlsx.full.min.js"></script>
 <script src="lib/exceljs.min.js"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>
