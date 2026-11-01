@@ -21,7 +21,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="AI Workflows">
 <link rel="manifest" href="site.webmanifest">
-<link rel="stylesheet" href="css/styles.css?v=1">
+<link rel="stylesheet" href="css/styles.css?v=2">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -51,7 +51,16 @@
   <!-- Workflows -->
   <section id="panel-workflows" role="tabpanel" aria-labelledby="tab-workflows">
     <div class="info-box">
-      <strong>Pick the workflows to assess.</strong> The starter list is built from activities in the AI Roles Assessment. Untick a workflow you do not run, untick any step that is not part of it, or add your own.
+      <strong>Pick the workflows to assess.</strong> The starter list has 31 workflows, built from activities in the AI Roles Assessment and grouped like its roles. Untick a workflow you do not run or a step that is not part of it. You can add steps to any workflow, or add your own workflow.
+    </div>
+    <div class="roles-box">
+      <div><strong>Start from your AI Roles Assessment.</strong> Load the Excel file you exported from the AI Roles Assessment (or its Save file). Steps outside your roles scope are unticked, workflows with no step in scope are switched off, and any classification you overrode is used.</div>
+      <div class="actions" style="margin-top:8px">
+        <button class="btn" id="btnRoles" type="button">Load roles file (XLSX or JSON)</button>
+        <input id="rolesInput" type="file" accept=".xlsx,.json" hidden>
+        <button class="btn small" id="btnRolesClear" type="button" hidden>Remove roles scope</button>
+        <span class="hint" id="rolesStatus" aria-live="polite"></span>
+      </div>
     </div>
     <form class="meta-form" id="metaForm" onsubmit="return false">
       <label>Organisation or function
@@ -79,9 +88,13 @@
       <label>Outcome it should deliver
         <input id="newOutcome" type="text" maxlength="140" autocomplete="off" placeholder="e.g. A pack leaders can use to decide next quarter&rsquo;s spend">
       </label>
+      <label>Group
+        <select id="newGroup"></select>
+      </label>
       <label>Steps, one per line
         <textarea id="newSteps" maxlength="2000" placeholder="Pull performance data&#10;Draft commentary&#10;Review with leadership"></textarea>
       </label>
+      <p class="hint">After adding, open the workflow and use Add a step to pick activities from the roles list.</p>
       <button class="btn primary" id="btnAdd" type="button">Add workflow</button>
       <span class="hint" id="addMsg" aria-live="polite"></span>
     </div>
@@ -214,7 +227,17 @@
     </div>
     <div class="card">
       <h2>Where the starter workflows come from</h2>
-      <p>Each starter workflow is a sequence of activities from the AI Roles Assessment, with the classification shown there (full automation, augmentation or human only). The grouping and order of steps are the author&rsquo;s judgement and have no published source. Treat them as a starting point to challenge and adapt for your team.</p>
+      <p>Each starter workflow is a sequence of activities from the AI Roles Assessment, with the classification shown there (full automation, augmentation or human only). There are 31 workflows, and every one of the 31 roles appears in at least one. The grouping and order of steps are the author&rsquo;s judgement and have no published source. Treat them as a starting point to challenge and adapt for your team.</p>
+    </div>
+    <div class="card">
+      <h2>Use your own data</h2>
+      <ol class="steps">
+        <li><strong>Your roles.</strong> Load a file from the AI Roles Assessment on the Workflows tab. Workflows and steps follow the roles and activities you put in scope, including any custom roles and activities you added there.</li>
+        <li><strong>Your steps.</strong> Open any workflow and use <em>Add a step</em> to add an activity from the roles list, or type your own step. Added steps have a Remove link.</li>
+        <li><strong>Your workflows.</strong> Use <em>Add your own workflow</em> and choose its group.</li>
+        <li><strong>Your thresholds and tier.</strong> Change the value and feasibility thresholds on the Results tab, and the EU AI Act tier for each workflow on the Assessment tab.</li>
+      </ol>
+      <p class="hint">Workflow IDs (WF01 to WF31, your own WFC01 onwards) and activity IDs (A001 onwards, custom AC001 onwards) are kept in the Excel file. Other Workmatik tools match on these IDs, so the files can be combined later.</p>
     </div>
     <div class="card">
       <h2>About your data</h2>
@@ -231,6 +254,6 @@
 
 <script src="lib/xlsx.full.min.js"></script>
 <script src="lib/exceljs.min.js"></script>
-<script src="js/app.js?v=1"></script>
+<script src="js/app.js?v=2"></script>
 </body>
 </html>

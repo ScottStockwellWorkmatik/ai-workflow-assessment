@@ -304,3 +304,19 @@ td.chg.down-bad, .ph.down-bad { color: #B42318; }
 
 .legend .sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid #0D0D0D;margin-right:6px;vertical-align:-1px}
 .tier b input{margin-right:6px;vertical-align:-1px}
+
+/* v2: groups, roles scope, add step */
+.wf-group{display:flex;align-items:center;gap:10px;margin:22px 0 8px;padding-bottom:6px;border-bottom:2px solid #024873}
+.wf-group:first-child{margin-top:4px}
+.wf-group-name{font-weight:700;color:#024873;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+.wf-group input{width:18px;height:18px;accent-color:#F25D27}
+.mini.idtag{background:#EEF1F3;color:#4A5560;font-variant-numeric:tabular-nums}
+.mini.scope{background:#EAF9FF;color:#024873}
+.role.out{background:#FFF1EA;color:#8A3A12}
+.roles-box{background:#EAF9FF;border:1.5px solid #5DC1FF;border-radius:10px;padding:14px 16px;margin:0 0 16px}
+.addstep{margin-top:12px;padding-top:10px;border-top:1px dashed #D9D9D9}
+.addstep-row{display:flex;gap:8px;flex-wrap:wrap}
+.addstep-row select,.addstep-row input{flex:1 1 200px;min-width:0;padding:8px;border:1.5px solid #D9D9D9;border-radius:6px;font:inherit;font-size:.9rem;background:#fff}
+.addstep-row select:focus,.addstep-row input:focus,.addform select:focus{outline:2px solid #F25D27;outline-offset:1px}
+.lnk{background:none;border:none;color:#024873;text-decoration:underline;font:inherit;font-size:.8rem;cursor:pointer;margin-left:8px}
+.addform select{width:100%;padding:8px;border:1.5px solid #D9D9D9;border-radius:6px;font:inherit;background:#fff}

@@ -1,7 +1,9 @@
 (function () {
   'use strict';
   var FW = null;
-  var state = { off: {}, stepsOff: {}, custom: [], scores: {}, tiers: {}, notes: {}, filter: 'all' };
+  var CAT = null, ACT = {}, ROLEBYID = {}, CUSTCAT = { roles: [], acts: [] }, lastRole = {};
+  var state = { off: {}, stepsOff: {}, custom: [], extra: {}, roles: null, scores: {}, tiers: {}, notes: {}, filter: 'all' };
+  var CLS = ['Full automation', 'Augmentation', 'Human only'];
   var openSet = {};
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -15,11 +17,53 @@
     if (img.complete && img.naturalWidth === 0) swap(); else img.addEventListener('error', swap);
   })();
 
-  fetch('data/framework.json?v=1').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(function (d) { FW = d; init(); })
+  function getJson(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  Promise.all([getJson('data/framework.json?v=2'), getJson('data/roles.json?v=2')])
+    .then(function (d) { FW = d[0]; CAT = d[1]; prep(); init(); })
     .catch(function () { var e = $('loadError'); e.textContent = 'The framework data could not be loaded. If you opened this file directly from your computer, use the published web address instead.'; e.hidden = false; });
 
+  // ---------- catalogue (roles and activities shared with the AI Roles Assessment)
+  function mkStep(aid) { var a = ACT[aid]; return a ? { aid: aid, role: a.role, activity: a.activity, cls: a.cls } : null; }
+  function rebuildCat() {
+    ACT = {}; ROLEBYID = {};
+    CAT.roles.forEach(function (r) { ROLEBYID[r.id] = { id: r.id, name: r.name, group: '', custom: false }; });
+    CAT.groups.forEach(function (g) { g.roles.forEach(function (n) { CAT.roles.forEach(function (r) { if (r.name === n) ROLEBYID[r.id].group = g.group; }); }); });
+    CUSTCAT.roles.forEach(function (r) { ROLEBYID[r.rid] = { id: r.rid, name: r.name, group: r.group, custom: true }; });
+    CAT.activities.forEach(function (a) { var r = ROLEBYID[a[1]]; ACT[a[0]] = { id: a[0], rid: a[1], task: a[2], activity: a[3], cls: a[4], role: r ? r.name : '' }; });
+    CUSTCAT.acts.forEach(function (a) { var r = ROLEBYID[a.rid]; if (r) ACT[a.id] = { id: a.id, rid: a.rid, task: a.task, activity: a.activity, cls: a.cls, role: r.name, custom: true }; });
+  }
+  function prep() {
+    rebuildCat();
+    FW.workflows.forEach(function (w) { w.steps = w.steps.map(function (a) { return mkStep(a); }).filter(Boolean); });
+  }
+  function cleanStr(v, n) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n); }
+  function setCustomCat(c) {
+    var out = { roles: [], acts: [] }, names = {};
+    CAT.roles.forEach(function (r) { names[r.name.toLowerCase()] = 1; });
+    var groups = FW.groups;
+    if (c && Array.isArray(c.roles)) {
+      c.roles.forEach(function (r) {
+        var rid = cleanStr(r.rid, 8), name = cleanStr(r.name, 80), group = cleanStr(r.group, 60);
+        if (!/^RC\d+$/.test(rid) || !name || groups.indexOf(group) < 0 || names[name.toLowerCase()]) return;
+        names[name.toLowerCase()] = 1; out.roles.push({ rid: rid, name: name, group: group });
+      });
+      (Array.isArray(c.acts) ? c.acts : []).forEach(function (a) {
+        var id = cleanStr(a.id, 8), rid = cleanStr(a.rid, 8), task = cleanStr(a.task, 100), act = cleanStr(a.activity, 160), cl = cleanStr(a.cls, 30);
+        var known = CAT.roles.some(function (r) { return r.id === rid; }) || out.roles.some(function (r) { return r.rid === rid; });
+        if (!/^AC\d+$/.test(id) || !known || !task || !act || CLS.indexOf(cl) < 0) return;
+        out.acts.push({ id: id, rid: rid, task: task, activity: act, cls: cl });
+      });
+    }
+    CUSTCAT = out; rebuildCat();
+  }
+  function normId(id) { id = String(id || '').trim(); var m = /^W(\d{2})$/.exec(id); if (m) return 'WF' + m[1]; m = /^C(\d{2,})$/.exec(id); if (m) return 'WFC' + m[1]; return id; }
+
   // ---------- data helpers
+  function stepsOf(w) { return w.custom ? w.steps : w.steps.concat(state.extra[w.id] || []); }
+  function editArr(w) { return w.custom ? w.steps : (state.extra[w.id] = state.extra[w.id] || []); }
+  function baseLen(w) { return w.custom ? 0 : w.steps.length; }
+  function stepCls(st) { var o = st.aid && state.roles && state.roles.ovr[st.aid]; return o || st.cls || ''; }
+  function inScope(st) { return !state.roles || !st.aid || !!state.roles.scope[st.aid]; }
   function allWf() { return FW.workflows.concat(state.custom); }
   function wfById(id) { return allWf().filter(function (w) { return w.id === id; })[0]; }
   function included(w) { return !state.off[w.id]; }
@@ -37,9 +81,9 @@
   }
   function suitability(w) {
     var fa = 0, au = 0, ho = 0, un = 0, n = 0;
-    w.steps.forEach(function (s, i) {
-      if (!stepOn(w, i)) return; n++;
-      if (s.cls === 'Full automation') fa++; else if (s.cls === 'Augmentation') au++; else if (s.cls === 'Human only') ho++; else un++;
+    stepsOf(w).forEach(function (s, i) {
+      if (!stepOn(w, i)) return; n++; var c = stepCls(s);
+      if (c === 'Full automation') fa++; else if (c === 'Augmentation') au++; else if (c === 'Human only') ho++; else un++;
     });
     var cl = fa + au + ho;
     return { fa: fa, au: au, ho: ho, un: un, n: n, pct: cl ? Math.round((fa + au) / cl * 100) : null };
@@ -76,66 +120,188 @@
   }
 
   // ---------- tab 1: workflows
+  function removeStep(w, idx) {
+    var arr = editArr(w), k = idx - baseLen(w); if (k < 0 || k >= arr.length) return;
+    arr.splice(k, 1);
+    var old = state.stepsOff[w.id] || {}, nu = {};
+    Object.keys(old).forEach(function (key) { var j = +key; if (j < idx) nu[j] = true; else if (j > idx) nu[j - 1] = true; });
+    state.stepsOff[w.id] = nu;
+  }
+  function roleSelect(cls, withBlank) {
+    var sel = el('select', cls);
+    if (withBlank) { var o0 = el('option', null, 'Choose a role'); o0.value = ''; sel.appendChild(o0); }
+    FW.groups.forEach(function (g) {
+      var og = el('optgroup'); og.label = g;
+      Object.keys(ROLEBYID).map(function (k) { return ROLEBYID[k]; }).filter(function (r) { return r.group === g; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name); })
+        .forEach(function (r) { var o = el('option', null, r.name + (r.custom ? ' (custom)' : '')); o.value = r.id; og.appendChild(o); });
+      if (og.children.length) sel.appendChild(og);
+    });
+    return sel;
+  }
+  function fillActs(sel, rid) {
+    sel.textContent = '';
+    var o0 = el('option', null, rid ? 'Choose an activity' : 'Choose a role first'); o0.value = ''; sel.appendChild(o0);
+    if (!rid) return;
+    var tasks = {}, order = [];
+    Object.keys(ACT).map(function (k) { return ACT[k]; }).filter(function (a) { return a.rid === rid; }).forEach(function (a) { if (!tasks[a.task]) { tasks[a.task] = []; order.push(a.task); } tasks[a.task].push(a); });
+    order.forEach(function (t) { var og = el('optgroup'); og.label = t; tasks[t].forEach(function (a) { var o = el('option', null, a.activity); o.value = a.id; og.appendChild(o); }); sel.appendChild(og); });
+  }
+  function addStepForm(w) {
+    var f = el('div', 'addstep'); f.appendChild(el('p', 'grp', 'Add a step'));
+    var row = el('div', 'addstep-row');
+    var rs = roleSelect('', true); rs.setAttribute('aria-label', 'Role for the new step'); var as = el('select'); as.setAttribute('aria-label', 'Activity for the new step'); fillActs(as, '');
+    if (lastRole[w.id]) { rs.value = lastRole[w.id]; fillActs(as, rs.value); }
+    rs.addEventListener('change', function () { lastRole[w.id] = rs.value; fillActs(as, rs.value); });
+    var tx = el('input'); tx.type = 'text'; tx.maxLength = 100; tx.placeholder = 'or type your own step'; tx.setAttribute('aria-label', 'Your own step');
+    var btn = el('button', 'btn small', 'Add step'); btn.type = 'button'; var msg = el('span', 'hint');
+    btn.addEventListener('click', function () {
+      var st = null, text = tx.value.trim();
+      if (as.value) st = mkStep(as.value); else if (text) st = { role: '', activity: text.slice(0, 100), cls: '' };
+      if (!st) { msg.textContent = ' Choose an activity or type a step.'; return; }
+      if (st.aid && stepsOf(w).some(function (x) { return x.aid === st.aid; })) { msg.textContent = ' That activity is already in this workflow.'; return; }
+      editArr(w).push(st); openSet[w.id] = true; renderWorkflows();
+    });
+    row.appendChild(rs); row.appendChild(as); row.appendChild(tx); row.appendChild(btn); f.appendChild(row); f.appendChild(msg);
+    return f;
+  }
+  function wfCard(w) {
+    var inc = included(w), steps = stepsOf(w);
+    var card = el('div', 'wf'); card.id = 'wf-' + w.id;
+    var head = el('div', 'wf-head');
+    var cb = el('input'); cb.type = 'checkbox'; cb.checked = inc; cb.setAttribute('aria-label', 'Include ' + w.name);
+    cb.addEventListener('change', function () { if (cb.checked) delete state.off[w.id]; else state.off[w.id] = true; renderWorkflows(); });
+    head.appendChild(cb);
+    var txt = el('div'); txt.appendChild(el('div', 'wf-title', w.name)); txt.appendChild(el('div', 'wf-out', w.outcome || '')); head.appendChild(txt);
+    var meta = el('div', 'wf-meta'); var s = suitability(w);
+    meta.appendChild(el('span', 'mini idtag', w.id));
+    if (w.custom) meta.appendChild(el('span', 'mini cust', 'Your own'));
+    meta.appendChild(el('span', 'mini', s.n + ' step' + (s.n === 1 ? '' : 's')));
+    if (state.roles) { var sc = steps.filter(function (x) { return x.aid && state.roles.scope[x.aid]; }).length, wa = steps.filter(function (x) { return x.aid; }).length; meta.appendChild(el('span', 'mini scope', sc + ' of ' + wa + ' in your roles scope')); }
+    if (s.pct != null) meta.appendChild(el('span', 'mini fa', s.pct + '% suited to AI'));
+    head.appendChild(meta); card.appendChild(head);
+    var det = el('details'); det.open = !!openSet[w.id];
+    det.addEventListener('toggle', function () { openSet[w.id] = det.open; });
+    det.appendChild(el('summary', null, 'Steps in this workflow'));
+    var ul = el('ul', 'steps-list'), bl = baseLen(w);
+    steps.forEach(function (st, i) {
+      var li = el('li', stepOn(w, i) ? '' : 'off');
+      var scb = el('input'); scb.type = 'checkbox'; scb.checked = stepOn(w, i); scb.setAttribute('aria-label', 'Include step ' + st.activity);
+      scb.addEventListener('change', function () {
+        if (!state.stepsOff[w.id]) state.stepsOff[w.id] = {};
+        if (scb.checked) delete state.stepsOff[w.id][i]; else state.stepsOff[w.id][i] = true;
+        renderWorkflows();
+      });
+      li.appendChild(scb);
+      var d = el('div'); d.appendChild(document.createTextNode(st.activity));
+      if (st.role) d.appendChild(el('span', 'role', st.role));
+      if (state.roles && st.aid && !inScope(st)) d.appendChild(el('span', 'role out', 'not in your roles scope'));
+      li.appendChild(d);
+      var c = stepCls(st);
+      if (c) li.appendChild(el('span', 'mini ' + (c === 'Full automation' ? 'fa' : c === 'Human only' ? 'ho' : ''), c));
+      if (i >= bl) { var rmb = el('button', 'lnk', 'Remove'); rmb.type = 'button'; rmb.setAttribute('aria-label', 'Remove step ' + st.activity); rmb.addEventListener('click', function () { removeStep(w, i); renderWorkflows(); }); li.appendChild(rmb); }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul);
+    det.appendChild(addStepForm(w));
+    if (w.custom) {
+      var act = el('div', 'wf-actions'); var rm = el('button', 'btn small', 'Remove this workflow'); rm.type = 'button';
+      rm.addEventListener('click', function () {
+        state.custom = state.custom.filter(function (c) { return c.id !== w.id; });
+        delete state.scores[w.id]; delete state.tiers[w.id]; delete state.notes[w.id]; delete state.off[w.id]; delete state.stepsOff[w.id]; delete state.extra[w.id];
+        renderWorkflows();
+      });
+      act.appendChild(rm); det.appendChild(act);
+    }
+    card.appendChild(det); return card;
+  }
   function renderWorkflows() {
     var host = $('wfList'); host.textContent = '';
-    var n = 0;
-    allWf().forEach(function (w) {
-      var inc = included(w); if (inc) n++;
-      var card = el('div', 'wf'); card.id = 'wf-' + w.id;
-      var head = el('div', 'wf-head');
-      var cb = el('input'); cb.type = 'checkbox'; cb.checked = inc; cb.setAttribute('aria-label', 'Include ' + w.name);
-      cb.addEventListener('change', function () { if (cb.checked) delete state.off[w.id]; else state.off[w.id] = true; renderWorkflows(); });
-      head.appendChild(cb);
-      var txt = el('div'); txt.appendChild(el('div', 'wf-title', w.name)); txt.appendChild(el('div', 'wf-out', w.outcome || '')); head.appendChild(txt);
-      var meta = el('div', 'wf-meta'); var s = suitability(w);
-      if (w.custom) meta.appendChild(el('span', 'mini cust', 'Your own'));
-      meta.appendChild(el('span', 'mini', s.n + ' step' + (s.n === 1 ? '' : 's')));
-      if (s.pct != null) meta.appendChild(el('span', 'mini fa', s.pct + '% suited to AI'));
-      head.appendChild(meta); card.appendChild(head);
-      var det = el('details'); det.open = !!openSet[w.id];
-      det.addEventListener('toggle', function () { openSet[w.id] = det.open; });
-      det.appendChild(el('summary', null, 'Steps in this workflow'));
-      var ul = el('ul', 'steps-list');
-      w.steps.forEach(function (st, i) {
-        var li = el('li', stepOn(w, i) ? '' : 'off');
-        var scb = el('input'); scb.type = 'checkbox'; scb.checked = stepOn(w, i); scb.setAttribute('aria-label', 'Include step ' + st.activity);
-        scb.addEventListener('change', function () {
-          if (!state.stepsOff[w.id]) state.stepsOff[w.id] = {};
-          if (scb.checked) delete state.stepsOff[w.id][i]; else state.stepsOff[w.id][i] = true;
-          renderWorkflows();
-        });
-        li.appendChild(scb);
-        var d = el('div'); d.appendChild(document.createTextNode(st.activity));
-        if (st.role) d.appendChild(el('span', 'role', st.role));
-        li.appendChild(d);
-        if (st.cls) li.appendChild(el('span', 'mini ' + (st.cls === 'Full automation' ? 'fa' : st.cls === 'Human only' ? 'ho' : ''), st.cls));
-        ul.appendChild(li);
-      });
-      det.appendChild(ul);
-      if (w.custom) {
-        var act = el('div', 'wf-actions'); var rm = el('button', 'btn small', 'Remove this workflow'); rm.type = 'button';
-        rm.addEventListener('click', function () {
-          state.custom = state.custom.filter(function (c) { return c.id !== w.id; });
-          delete state.scores[w.id]; delete state.tiers[w.id]; delete state.notes[w.id]; delete state.off[w.id]; delete state.stepsOff[w.id];
-          renderWorkflows();
-        });
-        act.appendChild(rm); det.appendChild(act);
-      }
-      card.appendChild(det); host.appendChild(card);
+    var n = 0, all = allWf();
+    all.forEach(function (w) { if (included(w)) n++; });
+    FW.groups.forEach(function (g) {
+      var list = all.filter(function (w) { return (w.group || FW.groups[0]) === g; }).sort(function (x, y) { return x.name.localeCompare(y.name); });
+      if (!list.length) return;
+      var on = list.filter(included).length;
+      var gh = el('div', 'wf-group'); var gcb = el('input'); gcb.type = 'checkbox'; gcb.checked = on === list.length; gcb.indeterminate = on > 0 && on < list.length; gcb.setAttribute('aria-label', 'Include all workflows in ' + g);
+      gcb.addEventListener('change', function () { list.forEach(function (w) { if (gcb.checked) delete state.off[w.id]; else state.off[w.id] = true; }); renderWorkflows(); });
+      gh.appendChild(gcb); gh.appendChild(el('span', 'wf-group-name', g)); gh.appendChild(el('span', 'hint', on + ' of ' + list.length + ' selected'));
+      host.appendChild(gh);
+      list.forEach(function (w) { host.appendChild(wfCard(w)); });
     });
-    $('wfCount').textContent = n + ' of ' + allWf().length + ' workflows selected';
+    $('wfCount').textContent = n + ' of ' + all.length + ' workflows selected';
+    renderRolesStatus();
   }
-
+  function renderRolesStatus() {
+    var h = $('rolesStatus'); if (!h) return; h.textContent = '';
+    $('btnRolesClear').hidden = !state.roles;
+    if (!state.roles) { h.textContent = 'No roles file loaded. All starter steps are shown.'; return; }
+    var n = Object.keys(state.roles.scope).length;
+    h.textContent = 'Roles scope loaded' + (state.roles.org ? ' for ' + state.roles.org : '') + ': ' + n + ' activit' + (n === 1 ? 'y' : 'ies') + ' in scope.';
+  }
+  function nextCustomId() { var n = 1; function id() { return 'WFC' + (n < 10 ? '0' + n : n); } while (wfById(id())) n++; return id(); }
   function addCustom() {
-    var name = $('newName').value.trim(), out = $('newOutcome').value.trim();
+    var name = $('newName').value.trim(), out = $('newOutcome').value.trim(), grp = $('newGroup').value;
     var lines = $('newSteps').value.split(/\r?\n/).map(function (s) { return s.trim().slice(0, 100); }).filter(Boolean).slice(0, 20);
     var msg = $('addMsg');
-    if (!name || !lines.length) { msg.textContent = ' Add a name and at least one step.'; return; }
-    var n = 1; while (wfById('C' + (n < 10 ? '0' + n : n))) n++;
-    var id = 'C' + (n < 10 ? '0' + n : n);
-    state.custom.push({ id: id, name: name.slice(0, 80), outcome: out, tier: 'minimal', custom: true, steps: lines.map(function (l) { return { role: '', activity: l, cls: '' }; }) });
-    $('newName').value = ''; $('newOutcome').value = ''; $('newSteps').value = ''; msg.textContent = ' Added.';
-    renderWorkflows();
+    if (!name || !lines.length) { msg.textContent = ' Add a name and at least one step. You can add steps from the roles list afterwards.'; return; }
+    var id = nextCustomId();
+    state.custom.push({ id: id, name: name.slice(0, 80), outcome: out, group: grp, tier: 'minimal', custom: true, steps: lines.map(function (l) { return { role: '', activity: l, cls: '' }; }) });
+    $('newName').value = ''; $('newOutcome').value = ''; $('newSteps').value = ''; msg.textContent = ' Added to ' + grp + '.';
+    openSet[id] = true; renderWorkflows();
+  }
+
+  // ---------- roles import
+  function parseRolesXlsx(buf) {
+    var wb = XLSX.read(buf, { type: 'array' }), ws = wb.Sheets['Selected activities']; if (!ws) throw new Error('no sheet');
+    var cc = { roles: [], acts: [] }, cw = wb.Sheets['Custom items'];
+    if (cw) XLSX.utils.sheet_to_json(cw, { defval: '' }).forEach(function (r) {
+      if (r['Type'] === 'Role') cc.roles.push({ rid: r['Role ID'], name: r['Role'], group: r['Group'] });
+      else if (r['Type'] === 'Activity') cc.acts.push({ id: r['Activity ID'], rid: r['Role ID'], task: r['Task'], activity: r['Activity'], cls: r['Classification'] });
+    });
+    var rows = XLSX.utils.sheet_to_json(ws, { defval: '' }), org = '';
+    var mw = wb.Sheets['Workmatik data']; if (mw) XLSX.utils.sheet_to_json(mw, { header: 1 }).forEach(function (r) { if (r[0] === 'Organisation') org = String(r[1] || ''); });
+    return { custom: cc, rows: rows.map(function (r) { return [String(r['Activity ID']).trim(), String(r['AI Suitability Classification']).trim()]; }), org: org };
+  }
+  function parseRolesJson(text) {
+    var d = JSON.parse(text); if (!d || !Array.isArray(d.scopeIds)) throw new Error('old format');
+    var rows = d.scopeIds.map(function (id) { return [String(id), (d.overrideIds || {})[id] || '']; });
+    return { custom: d.custom || { roles: [], acts: [] }, rows: rows, org: d.clientName || '' };
+  }
+  function applyRoles(parsed, fname) {
+    setCustomCat(parsed.custom);
+    var scope = {}, ovr = {}, n = 0;
+    parsed.rows.forEach(function (r) {
+      var a = ACT[r[0]]; if (!a) return; scope[a.id] = true; n++;
+      if (CLS.indexOf(r[1]) >= 0 && r[1] !== a.cls) ovr[a.id] = r[1];
+    });
+    if (!n) return { ok: false };
+    state.roles = { org: String(parsed.org || '').slice(0, 80), scope: scope, ovr: ovr, file: fname };
+    var offWf = 0, withScope = 0, used = {};
+    allWf().forEach(function (w) {
+      var steps = stepsOf(w), any = false, hasAid = false; state.stepsOff[w.id] = {};
+      steps.forEach(function (st, i) {
+        if (st.aid) { hasAid = true; used[st.aid] = true; if (scope[st.aid]) any = true; else state.stepsOff[w.id][i] = true; }
+      });
+      if (hasAid && !any) { state.off[w.id] = true; offWf++; } else { delete state.off[w.id]; withScope++; }
+    });
+    var unused = Object.keys(scope).filter(function (id) { return !used[id]; }).length;
+    if (parsed.org && !$('orgName').value) $('orgName').value = parsed.org;
+    return { ok: true, n: n, withScope: withScope, offWf: offWf, unused: unused, custom: CUSTCAT.acts.length };
+  }
+  function loadRolesFile(file) {
+    var msgs = $('loadMessages'); msgs.textContent = '';
+    function msg(t, ok) { msgs.appendChild(el('li', ok ? 'ok' : 'bad', t)); }
+    var isX = /\.xlsx?$/i.test(file.name);
+    (isX ? readFileBuffer(file) : new Promise(function (res, rej) { var rd = new FileReader(); rd.onload = function () { res(rd.result); }; rd.onerror = rej; rd.readAsText(file); }))
+      .then(function (data) {
+        var parsed; try { parsed = isX ? parseRolesXlsx(data) : parseRolesJson(data); } catch (e) { msg('That file could not be read as an AI Roles Assessment file. Use the Excel export, or a Save file from the updated tool.', false); return; }
+        var r = applyRoles(parsed, file.name);
+        if (!r.ok) { msg('That file has no activities in scope that this tool recognises.', false); return; }
+        renderWorkflows(); renderAssess();
+        msg('Loaded ' + r.n + ' activities in scope from ' + file.name + '. ' + r.withScope + ' workflow' + (r.withScope === 1 ? ' has' : 's have') + ' at least one step in your scope; ' + r.offWf + ' with none were switched off. Steps outside your scope are unticked, and you can tick them back on.', true);
+        if (r.unused) msg(r.unused + ' of your in-scope activit' + (r.unused === 1 ? 'y is' : 'ies are') + ' not in any workflow yet. Use Add a step on a workflow to include ' + (r.unused === 1 ? 'it' : 'them') + (r.custom ? ', including your custom ones' : '') + '.', true);
+      }).catch(function () { msg('That file could not be read.', false); });
   }
 
   // ---------- tab 2: assessment
@@ -340,19 +506,34 @@
       ['Quick wins', r.scored.filter(function (x) { return x.quad === 'quick'; }).length],
       [], ['Generated in the browser by the Workmatik AI Workflow Assessment. Questions, thresholds, tiers and starter workflows are the author’s draft judgement.']
     ];
-    var scoring = [['ID', 'Workflow', 'Source', 'Included', 'V1', 'V2', 'F1', 'F2', 'F3', 'R1', 'R2', 'EU AI Act tier', 'Note']];
+    var scoring = [['ID', 'Workflow', 'Group', 'Source', 'Included', 'V1', 'V2', 'F1', 'F2', 'F3', 'R1', 'R2', 'EU AI Act tier', 'Note']];
     allWf().forEach(function (w) {
       var sc = state.scores[w.id] || {};
-      scoring.push([w.id, w.name, w.custom ? 'Own' : 'Starter', included(w) ? 'Y' : 'N'].concat(['V1', 'V2', 'F1', 'F2', 'F3', 'R1', 'R2'].map(function (k) { return sc[k] >= 1 ? sc[k] : ''; })).concat([tierOf(w), state.notes[w.id] || '']));
+      scoring.push([w.id, w.name, w.group || FW.groups[0], w.custom ? 'Own' : 'Starter', included(w) ? 'Y' : 'N'].concat(['V1', 'V2', 'F1', 'F2', 'F3', 'R1', 'R2'].map(function (k) { return sc[k] >= 1 ? sc[k] : ''; })).concat([tierOf(w), state.notes[w.id] || '']));
     });
-    var steps = [['Workflow ID', 'Workflow', 'Step no', 'Role', 'Activity', 'Classification', 'Included', 'Outcome']];
-    allWf().forEach(function (w) { w.steps.forEach(function (s, i) { steps.push([w.id, w.name, i + 1, s.role || '', s.activity, s.cls || '', stepOn(w, i) ? 'Y' : 'N', i === 0 ? (w.outcome || '') : '']); }); });
+    var steps = [['Workflow ID', 'Workflow', 'Step no', 'Role', 'Activity', 'Activity ID', 'Source', 'Classification', 'Included', 'Outcome']];
+    allWf().forEach(function (w) { var bl = baseLen(w); stepsOf(w).forEach(function (s, i) { steps.push([w.id, w.name, i + 1, s.role || '', s.activity, s.aid || '', w.custom ? 'Own' : (i < bl ? 'Starter' : 'Added'), stepCls(s), stepOn(w, i) ? 'Y' : 'N', i === 0 ? (w.outcome || '') : '']); }); });
     var qs = [['ID', 'Group', 'Name', 'Question', '1 =', '3 =', '5 =']];
     FW.questions.forEach(function (q) { qs.push([q.id, q.group, q.name, q.q].concat(q.a)); });
     var res = [['Rank', 'ID', 'Workflow', 'Value', 'Feasibility', 'Risk', 'Priority index', 'Group', 'EU AI Act tier', 'Suited to AI']];
     r.ranked.forEach(function (x) { var s = suitability(x.w); res.push([x.rank, x.w.id, x.w.name, round1(x.v), round1(x.f), round1(x.r), x.priority, quadById(x.quad).name, tierName(x.tier), s.pct == null ? '' : s.pct + '%']); });
     r.scored.filter(function (x) { return x.tier === 'prohibited'; }).forEach(function (x) { res.push(['', x.w.id, x.w.name, round1(x.v), round1(x.f), round1(x.r), '', 'Do not proceed', tierName(x.tier), '']); });
-    return [['Summary', summary, [30, 60]], ['Scoring', scoring, [7, 40, 9, 9, 6, 6, 6, 6, 6, 6, 6, 16, 50]], ['Steps', steps, [11, 36, 8, 30, 50, 16, 9, 50]], ['Questions', qs, [6, 12, 28, 70, 30, 30, 30]], ['Results', res, [7, 7, 40, 8, 11, 8, 13, 16, 22, 12]]];
+    var data = [['Field', 'Value'], ['Tool', 'Workmatik AI Workflow Assessment'], ['Tool key', 'workflow'], ['Data version', FW.version], ['Schema', 'workmatik-shared-ids-1'], ['Organisation', m.org], ['Assessor', m.who], ['Assessment date', m.date],
+      ['Workflows scored', r.scored.length], ['Roles file loaded', state.roles ? 'Yes' : 'No'], ['Roles file organisation', state.roles ? state.roles.org : ''], ['Roles activities in scope', state.roles ? Object.keys(state.roles.scope).length : ''],
+      ['Note', 'Workflow IDs (WF##, own WFC##) and Activity IDs (A###, custom AC###) are stable. Other Workmatik tools match on these IDs.']];
+    var out = [['Summary', summary, [30, 60]], ['Workmatik data', data, [26, 90]], ['Scoring', scoring, [8, 40, 28, 9, 9, 6, 6, 6, 6, 6, 6, 6, 16, 50]], ['Steps', steps, [11, 36, 8, 30, 50, 11, 9, 16, 9, 50]], ['Questions', qs, [6, 12, 28, 70, 30, 30, 30]], ['Results', res, [7, 8, 40, 8, 11, 8, 13, 16, 22, 12]]];
+    if (state.roles) {
+      var rs = [['Activity ID', 'Role', 'Task', 'Activity', 'Classification', 'Default classification']];
+      Object.keys(state.roles.scope).sort().forEach(function (id) { var a = ACT[id]; if (a) rs.push([id, a.role, a.task, a.activity, state.roles.ovr[id] || a.cls, a.cls]); });
+      out.push(['Roles scope', rs, [11, 34, 30, 50, 20, 22]]);
+    }
+    if (CUSTCAT.roles.length || CUSTCAT.acts.length) {
+      var ci = [['Type', 'Role ID', 'Group', 'Role', 'Activity ID', 'Task', 'Activity', 'Classification']];
+      CUSTCAT.roles.forEach(function (r) { ci.push(['Role', r.rid, r.group, r.name, '', '', '', '']); });
+      CUSTCAT.acts.forEach(function (a) { var r = ROLEBYID[a.rid]; ci.push(['Activity', a.rid, r ? r.group : '', r ? r.name : '', a.id, a.task, a.activity, a.cls]); });
+      out.push(['Custom items', ci, [10, 8, 30, 34, 11, 30, 50, 20]]);
+    }
+    return out;
   }
   function saveBlob(buf, fname) {
     var blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -378,7 +559,7 @@
         ws.eachRow(function (row) { row.alignment = { vertical: 'top', wrapText: true }; });
       });
       objs.Summary.getRow(1).font = { bold: true, size: 14 };
-      ['Scoring', 'Steps', 'Questions', 'Results'].forEach(function (n) { headStyle(objs[n]); });
+      Object.keys(objs).forEach(function (n) { if (n !== 'Summary') headStyle(objs[n]); });
       if (png) { var id = wb.addImage({ base64: png, extension: 'png' }); objs.Results.addImage(id, { tl: { col: 0, row: objs.Results.rowCount + 2 }, ext: { width: 560, height: 400 } }); }
       return wb.xlsx.writeBuffer();
     }).then(function (buf) { saveBlob(buf, fname); }).catch(function () { fallback(); });
@@ -393,29 +574,50 @@
   function validTier(t) { return FW.tiers.some(function (x) { return x.id === t; }); }
   function parseWorkbook(buf) {
     var wb = XLSX.read(buf, { type: 'array' }), ws = wb.Sheets['Scoring']; if (!ws) throw new Error('no scoring sheet');
-    var out = { off: {}, stepsOff: {}, custom: [], scores: {}, tiers: {}, notes: {}, org: '', who: '', date: '', tv: null, tf: null, n: 0, rows: [] };
+    var out = { off: {}, stepsOff: {}, custom: [], extra: {}, roles: null, custcat: { roles: [], acts: [] }, scores: {}, tiers: {}, notes: {}, org: '', who: '', date: '', tv: null, tf: null, n: 0, rows: [] };
+    var cw = wb.Sheets['Custom items'];
+    if (cw) XLSX.utils.sheet_to_json(cw, { defval: '' }).forEach(function (r) {
+      if (r['Type'] === 'Role') out.custcat.roles.push({ rid: r['Role ID'], name: r['Role'], group: r['Group'] });
+      else if (r['Type'] === 'Activity') out.custcat.acts.push({ id: r['Activity ID'], rid: r['Role ID'], task: r['Task'], activity: r['Activity'], cls: r['Classification'] });
+    });
+    setCustomCat(out.custcat);
+    var rsw = wb.Sheets['Roles scope'];
+    if (rsw) {
+      var sc0 = {}, ov0 = {}, c0 = 0;
+      XLSX.utils.sheet_to_json(rsw, { defval: '' }).forEach(function (r) { var id = String(r['Activity ID']).trim(), a = ACT[id]; if (!a) return; sc0[id] = true; c0++; var cl = String(r['Classification']).trim(); if (CLS.indexOf(cl) >= 0 && cl !== a.cls) ov0[id] = cl; });
+      var org0 = ''; if (wb.Sheets['Workmatik data']) XLSX.utils.sheet_to_json(wb.Sheets['Workmatik data'], { header: 1 }).forEach(function (r) { if (r[0] === 'Roles file organisation') org0 = String(r[1] || ''); });
+      if (c0) out.roles = { org: org0, scope: sc0, ovr: ov0, file: '' };
+    }
     var stepRows = wb.Sheets['Steps'] ? XLSX.utils.sheet_to_json(wb.Sheets['Steps'], { defval: '' }) : [];
+    function rowStep(s) {
+      var id = String(s['Activity ID'] || '').trim();
+      if (id && ACT[id]) return mkStep(id);
+      return { role: String(s['Role'] || '').slice(0, 80), activity: String(s['Activity'] || '').slice(0, 100), cls: '' };
+    }
     XLSX.utils.sheet_to_json(ws, { defval: '' }).forEach(function (row) {
-      var id = String(row['ID'] || '').trim(), own = String(row['Source']).toLowerCase() === 'own', name = String(row['Workflow'] || '').trim();
+      var id = normId(row['ID']), name = String(row['Workflow'] || '').trim();
+      var own = String(row['Source']).toLowerCase() === 'own' || /^WFC\d{2,}$/.test(id);
       var tier = String(row['EU AI Act tier'] || '').trim(), sc = {}, got = 0;
       ['V1', 'V2', 'F1', 'F2', 'F3', 'R1', 'R2'].forEach(function (k) { var n = parseInt(row[k], 10); if (n >= 1 && n <= 5) { sc[k] = n; got++; } });
+      var myRows = stepRows.filter(function (s) { return normId(s['Workflow ID']) === id; }).sort(function (a, b) { return (parseInt(a['Step no'], 10) || 0) - (parseInt(b['Step no'], 10) || 0); });
       if (own) {
-        if (!/^C\d{2,}$/.test(id) || !name) return;
-        var mySteps = stepRows.filter(function (s) { return String(s['Workflow ID']) === id; }).sort(function (a, b) { return (parseInt(a['Step no'], 10) || 0) - (parseInt(b['Step no'], 10) || 0); });
-        if (!mySteps.length) return;
-        out.custom.push({ id: id, name: name.slice(0, 80), outcome: String((mySteps[0]['Outcome'] || '')).slice(0, 140), tier: 'minimal', custom: true, steps: mySteps.map(function (s) { return { role: '', activity: String(s['Activity'] || '').slice(0, 100), cls: '' }; }) });
-        mySteps.forEach(function (s, i) { if (String(s['Included']).toUpperCase() === 'N') { (out.stepsOff[id] = out.stepsOff[id] || {})[i] = true; } });
-      } else if (!FW.workflows.some(function (w) { return w.id === id; })) return;
+        if (!/^WFC\d{2,}$/.test(id) || !name || !myRows.length) return;
+        var grp = String(row['Group'] || '').trim(); if (FW.groups.indexOf(grp) < 0) grp = FW.groups[0];
+        out.custom.push({ id: id, name: name.slice(0, 80), outcome: String((myRows[0]['Outcome'] || '')).slice(0, 140), group: grp, tier: 'minimal', custom: true, steps: myRows.map(rowStep) });
+        myRows.forEach(function (s, i) { if (String(s['Included']).toUpperCase() === 'N') { (out.stepsOff[id] = out.stepsOff[id] || {})[i] = true; } });
+      } else {
+        var w = FW.workflows.filter(function (x) { return x.id === id; })[0]; if (!w) return;
+        myRows.forEach(function (s, i) {
+          var inc = String(s['Included']).toUpperCase() !== 'N';
+          if (i < w.steps.length) { if (!inc && w.steps[i].activity === String(s['Activity'])) (out.stepsOff[id] = out.stepsOff[id] || {})[i] = true; }
+          else if (String(s['Source']) === 'Added') { (out.extra[id] = out.extra[id] || []).push(rowStep(s)); if (!inc) (out.stepsOff[id] = out.stepsOff[id] || {})[i] = true; }
+        });
+      }
       if (String(row['Included']).toUpperCase() === 'N') out.off[id] = true;
       if (got) { out.scores[id] = sc; out.n++; }
       if (validTier(tier)) out.tiers[id] = tier;
       if (row['Note']) out.notes[id] = String(row['Note']).slice(0, 500);
       out.rows.push(id);
-    });
-    stepRows.forEach(function (s) {
-      var id = String(s['Workflow ID']); var w = FW.workflows.filter(function (x) { return x.id === id; })[0]; if (!w) return;
-      var i = (parseInt(s['Step no'], 10) || 0) - 1;
-      if (i >= 0 && i < w.steps.length && w.steps[i].activity === String(s['Activity']) && String(s['Included']).toUpperCase() === 'N') (out.stepsOff[id] = out.stepsOff[id] || {})[i] = true;
     });
     var sm = wb.Sheets['Summary'];
     if (sm) XLSX.utils.sheet_to_json(sm, { header: 1, defval: '' }).forEach(function (r) {
@@ -433,7 +635,7 @@
     function msg(t, ok) { msgs.appendChild(el('li', ok ? 'ok' : 'bad', t)); }
     readFileBuffer(file).then(function (buf) {
       var d; try { d = parseWorkbook(buf); } catch (e) { msg('This file has no Scoring sheet, or could not be read as an assessment file, so it was not loaded.', false); return; }
-      state.off = d.off; state.stepsOff = d.stepsOff; state.custom = d.custom; state.scores = d.scores; state.tiers = d.tiers; state.notes = d.notes;
+      state.off = d.off; state.stepsOff = d.stepsOff; state.custom = d.custom; state.extra = d.extra; state.roles = d.roles; state.scores = d.scores; state.tiers = d.tiers; state.notes = d.notes;
       $('orgName').value = d.org; $('assessor').value = d.who; $('assessDate').value = d.date;
       if (d.tv) $('thrValue').value = d.tv; if (d.tf) $('thrFeas').value = d.tf;
       renderWorkflows(); renderAssess(); msg('Loaded ' + d.n + ' scored workflow' + (d.n === 1 ? '' : 's') + ' and ' + d.custom.length + ' of your own from ' + file.name + '.', true);
@@ -461,7 +663,7 @@
     var items = {}, n = 0;
     XLSX.utils.sheet_to_json(ws, { defval: '' }).forEach(function (row) {
       if (String(row['Included']).toUpperCase() === 'N') return;
-      var id = String(row['ID'] || '').trim(), own = String(row['Source']).toLowerCase() === 'own', name = String(row['Workflow'] || '').trim();
+      var id = normId(row['ID']), own = String(row['Source']).toLowerCase() === 'own', name = String(row['Workflow'] || '').trim();
       var sc = {}, got = 0; ['V1', 'V2', 'F1', 'F2', 'F3', 'R1', 'R2'].forEach(function (k) { var v = parseInt(row[k], 10); if (v >= 1 && v <= 5) { sc[k] = v; got++; } });
       if (got !== 7) return;
       var tier = validTier(String(row['EU AI Act tier'])) ? String(row['EU AI Act tier']) : 'minimal';
@@ -563,6 +765,13 @@
     $('btnAll').addEventListener('click', function () { state.off = {}; renderWorkflows(); });
     $('btnNone').addEventListener('click', function () { allWf().forEach(function (w) { state.off[w.id] = true; }); renderWorkflows(); });
     $('btnAdd').addEventListener('click', addCustom);
+    FW.groups.forEach(function (g) { var o = el('option', null, g); o.value = g; $('newGroup').appendChild(o); });
+    $('btnRoles').addEventListener('click', function () { $('rolesInput').click(); });
+    $('rolesInput').addEventListener('change', function (e) { if (e.target.files[0]) loadRolesFile(e.target.files[0]); e.target.value = ''; });
+    $('btnRolesClear').addEventListener('click', function () {
+      state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.stepsOff = {}; state.off = {}; $('loadMessages').textContent = '';
+      renderWorkflows(); renderAssess();
+    });
     $('btnGoAssess').addEventListener('click', function () { showTab('assess'); });
     $('btnGoResults').addEventListener('click', function () { showTab('results'); });
     $('btnDownload').addEventListener('click', download);
@@ -570,7 +779,7 @@
     $('fileInput').addEventListener('change', function (e) { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
     $('btnReset').addEventListener('click', function () {
       if (!window.confirm('Clear all selections, your own workflows, scores, tiers and notes?')) return;
-      state.off = {}; state.stepsOff = {}; state.custom = []; state.scores = {}; state.tiers = {}; state.notes = {}; $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
+      state.off = {}; state.stepsOff = {}; state.custom = []; state.extra = {}; state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.scores = {}; state.tiers = {}; state.notes = {}; $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
     });
     ['thrValue', 'thrFeas'].forEach(function (id) { $(id).addEventListener('input', renderResults); });
     $('btnCmpAdd').addEventListener('click', function () { $('cmpFiles').click(); });

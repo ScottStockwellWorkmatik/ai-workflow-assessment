@@ -1,5 +1,5 @@
 {
- "version": "1.0.0",
+ "version": "2.0.0",
  "date": "1 November 2026",
  "questions": [
   {
@@ -160,614 +160,555 @@
  },
  "workflows": [
   {
-   "id": "W01",
+   "id": "WF01",
+   "group": "Content and creative",
    "name": "Content planning to publication",
    "outcome": "Published content that matches the plan and the brand.",
    "tier": "limited",
    "steps": [
-    {
-     "role": "Content Strategist",
-     "activity": "Content gap analysis",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Content Strategist",
-     "activity": "Editorial calendar creation",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Content Strategist",
-     "activity": "Writing content briefs",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Content Writer / Copywriter",
-     "activity": "Blog post writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Content Writer / Copywriter",
-     "activity": "Fact checking",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Content Writer / Copywriter",
-     "activity": "Brand voice alignment checking",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Content Strategist",
-     "activity": "Editing and proofreading",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Content Strategist",
-     "activity": "Scheduling and publishing content",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Content Strategist",
-     "activity": "Content performance reporting",
-     "cls": "Full automation"
-    }
+    "A003",
+    "A002",
+    "A008",
+    "A025",
+    "A035",
+    "A036",
+    "A011",
+    "A015",
+    "A017"
    ]
   },
   {
-   "id": "W02",
+   "id": "WF02",
+   "group": "Demand and channels",
    "name": "Email campaign build and send",
    "outcome": "Emails that reach the right segment, render correctly and report results.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Email Marketing Specialist",
-     "activity": "Audience segmentation strategy",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Email Marketing Specialist",
-     "activity": "Email copywriting",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Email Marketing Specialist",
-     "activity": "Subject line creation and testing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Email Marketing Specialist",
-     "activity": "Dynamic content configuration",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Email Marketing Specialist",
-     "activity": "Spam testing",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Marketing Operations Specialist",
-     "activity": "Email deployment and testing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Email Marketing Specialist",
-     "activity": "Open and click rate reporting",
-     "cls": "Full automation"
-    }
+    "A220",
+    "A222",
+    "A225",
+    "A224",
+    "A233",
+    "A160",
+    "A235"
    ]
   },
   {
-   "id": "W03",
+   "id": "WF03",
+   "group": "Demand and channels",
    "name": "Lead scoring, qualification and routing",
    "outcome": "Leads scored, qualified and handed to sales within the agreed time.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Demand Generation Specialist",
-     "activity": "Lead data enrichment",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Demand Generation Specialist",
-     "activity": "Lead scoring model configuration",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Demand Generation Specialist",
-     "activity": "Lead qualification and routing",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Marketing Operations Specialist",
-     "activity": "Lead routing rule configuration",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Revenue Operations Specialist",
-     "activity": "SLA definition between marketing and sales",
-     "cls": "Human only"
-    },
-    {
-     "role": "Revenue Operations Specialist",
-     "activity": "Pipeline reporting and analysis",
-     "cls": "Full automation"
-    }
+    "A070",
+    "A067",
+    "A068",
+    "A159",
+    "A347",
+    "A342"
    ]
   },
   {
-   "id": "W04",
+   "id": "WF04",
+   "group": "Demand and channels",
    "name": "Paid campaign setup to optimisation",
    "outcome": "Paid campaigns that launch accurately and improve over time.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Demand Generation Specialist",
-     "activity": "Campaign strategy development",
-     "cls": "Human only"
-    },
-    {
-     "role": "Performance Marketing Specialist",
-     "activity": "Keyword research and selection",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Performance Marketing Specialist",
-     "activity": "Ad copy creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Performance Marketing Specialist",
-     "activity": "Campaign structure setup",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Performance Marketing Specialist",
-     "activity": "Bid strategy configuration",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Performance Marketing Specialist",
-     "activity": "Negative keyword management",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Demand Generation Specialist",
-     "activity": "Campaign performance reporting",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Demand Generation Specialist",
-     "activity": "Conversion rate optimisation",
-     "cls": "Augmentation"
-    }
+    "A058",
+    "A076",
+    "A077",
+    "A078",
+    "A079",
+    "A080",
+    "A074",
+    "A075"
    ]
   },
   {
-   "id": "W05",
+   "id": "WF05",
+   "group": "Demand and channels",
    "name": "SEO review to content optimisation",
    "outcome": "Higher organic visibility from fixes and optimised pages.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "SEO Specialist",
-     "activity": "Site crawl and audit",
-     "cls": "Full automation"
-    },
-    {
-     "role": "SEO Specialist",
-     "activity": "Keyword research",
-     "cls": "Full automation"
-    },
-    {
-     "role": "SEO Specialist",
-     "activity": "Content optimisation recommendations",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "SEO Specialist",
-     "activity": "Meta title and description writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "SEO Specialist",
-     "activity": "Internal linking strategy",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "SEO Specialist",
-     "activity": "Rank tracking and reporting",
-     "cls": "Full automation"
-    }
+    "A038",
+    "A045",
+    "A049",
+    "A046",
+    "A048",
+    "A053"
    ]
   },
   {
-   "id": "W06",
+   "id": "WF06",
+   "group": "Demand and channels",
    "name": "Social content to community response",
    "outcome": "Consistent social presence and timely responses to the audience.",
    "tier": "limited",
    "steps": [
-    {
-     "role": "Social Media Specialist",
-     "activity": "Content calendar creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Social Media Specialist",
-     "activity": "Post copy writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Social Media Specialist",
-     "activity": "Image and graphic creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Social Media Specialist",
-     "activity": "Comment moderation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Social Media Specialist",
-     "activity": "Responding to DMs and enquiries",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Social Media Specialist",
-     "activity": "Sentiment monitoring",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Social Media Specialist",
-     "activity": "Engagement rate reporting",
-     "cls": "Full automation"
-    }
+    "A103",
+    "A099",
+    "A100",
+    "A104",
+    "A105",
+    "A106",
+    "A109"
    ]
   },
   {
-   "id": "W07",
+   "id": "WF07",
+   "group": "Operations, data and delivery",
    "name": "Marketing performance reporting and attribution",
    "outcome": "Trusted, regular reporting that links activity to pipeline and revenue.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Performance Marketing Specialist",
-     "activity": "UTM and tracking parameter management",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Marketing Data Analyst",
-     "activity": "Data source integration",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Marketing Data Analyst",
-     "activity": "Data cleaning and normalisation",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Marketing Data Analyst",
-     "activity": "Attribution modelling",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Marketing Data Analyst",
-     "activity": "KPI dashboard creation",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Marketing Data Analyst",
-     "activity": "Executive reporting",
-     "cls": "Augmentation"
-    }
+    "A091",
+    "A239",
+    "A241",
+    "A250",
+    "A243",
+    "A244"
    ]
   },
   {
-   "id": "W08",
+   "id": "WF08",
+   "group": "Go-to-market and relationships",
    "name": "Sales enablement content",
    "outcome": "Sales has current messaging and assets to use in conversations.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Product Marketing Manager",
-     "activity": "Messaging framework creation",
-     "cls": "Human only"
-    },
-    {
-     "role": "Product Marketing Manager",
-     "activity": "Battle card creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Product Marketing Manager",
-     "activity": "Sales deck creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Product Marketing Manager",
-     "activity": "Objection handling guide creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Product Marketing Manager",
-     "activity": "Product demo script writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Product Marketing Manager",
-     "activity": "Sales training content creation",
-     "cls": "Augmentation"
-    }
+    "A134",
+    "A142",
+    "A143",
+    "A144",
+    "A145",
+    "A146"
    ]
   },
   {
-   "id": "W09",
+   "id": "WF09",
+   "group": "Strategy and planning",
    "name": "Competitive intelligence cycle",
    "outcome": "Sales and leaders get timely, usable intelligence on competitors.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Competitor website and content monitoring",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Competitor pricing tracking",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Competitor product feature tracking",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Competitive landscape mapping",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Competitive battle card creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Competitive intelligence newsletter",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Competitive Intelligence Analyst",
-     "activity": "Sales team competitive briefing",
-     "cls": "Human only"
-    }
+    "A289",
+    "A290",
+    "A291",
+    "A296",
+    "A294",
+    "A299",
+    "A300"
    ]
   },
   {
-   "id": "W10",
+   "id": "WF10",
+   "group": "Demand and channels",
    "name": "Account-based programme for target accounts",
    "outcome": "Target accounts engaged with relevant content and progressing.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "ABM Specialist",
-     "activity": "Target account list selection",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "ABM Specialist",
-     "activity": "Account research and profiling",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "ABM Specialist",
-     "activity": "Stakeholder mapping",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "ABM Specialist",
-     "activity": "Personalised content creation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "ABM Specialist",
-     "activity": "Account advertising setup (LinkedIn/display)",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "ABM Specialist",
-     "activity": "Account engagement scoring",
-     "cls": "Full automation"
-    },
-    {
-     "role": "ABM Specialist",
-     "activity": "Pipeline influence reporting",
-     "cls": "Full automation"
-    }
+    "A202",
+    "A203",
+    "A205",
+    "A206",
+    "A209",
+    "A215",
+    "A216"
    ]
   },
   {
-   "id": "W11",
+   "id": "WF11",
+   "group": "Go-to-market and relationships",
    "name": "Event: promotion to follow-up",
    "outcome": "Registrations, attendance and follow-up that turn into pipeline.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "Event registration setup",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "Pre-event promotional campaign",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "Speaker briefing and management",
-     "cls": "Human only"
-    },
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "Attendee communication",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "On-site lead capture management",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "Post-event follow-up sequence",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Event Marketing Specialist",
-     "activity": "Account engagement at events reporting",
-     "cls": "Full automation"
-    }
+    "A324",
+    "A329",
+    "A326",
+    "A328",
+    "A331",
+    "A330",
+    "A332"
    ]
   },
   {
-   "id": "W12",
+   "id": "WF12",
+   "group": "Strategy and planning",
    "name": "Customer research to insight",
    "outcome": "Research findings that teams understand and act on.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Survey design",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Survey deployment and management",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Interview transcription",
-     "cls": "Full automation"
-    },
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Qualitative data coding and thematic analysis",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Insight synthesis",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Research report writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Insights Analyst",
-     "activity": "Insight dissemination across teams",
-     "cls": "Human only"
-    }
+    "A257",
+    "A258",
+    "A261",
+    "A266",
+    "A268",
+    "A269",
+    "A272"
    ]
   },
   {
-   "id": "W13",
+   "id": "WF13",
+   "group": "Go-to-market and relationships",
    "name": "Customer advocacy and case studies",
    "outcome": "A steady supply of customer references and approved case studies.",
    "tier": "limited",
    "steps": [
-    {
-     "role": "Customer Marketing Specialist",
-     "activity": "Customer reference identification",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Marketing Specialist",
-     "activity": "Testimonial collection and curation",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Marketing Specialist",
-     "activity": "Case study development",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Customer Marketing Specialist",
-     "activity": "Review site campaign management",
-     "cls": "Augmentation"
-    }
+    "A175",
+    "A177",
+    "A176",
+    "A178"
    ]
   },
   {
-   "id": "W14",
+   "id": "WF14",
+   "group": "Go-to-market and relationships",
    "name": "Press release to media coverage",
    "outcome": "Accurate announcements that earn coverage, with impact measured.",
    "tier": "limited",
    "steps": [
-    {
-     "role": "PR / Communications Specialist",
-     "activity": "Journalist research and targeting",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "PR / Communications Specialist",
-     "activity": "Press release writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "PR / Communications Specialist",
-     "activity": "Media pitch writing",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "PR / Communications Specialist",
-     "activity": "Media coverage tracking",
-     "cls": "Full automation"
-    },
-    {
-     "role": "PR / Communications Specialist",
-     "activity": "PR impact reporting",
-     "cls": "Augmentation"
-    }
+    "A304",
+    "A303",
+    "A305",
+    "A316",
+    "A319"
    ]
   },
   {
-   "id": "W15",
+   "id": "WF15",
+   "group": "AI and emerging",
    "name": "AI use case approval and governance",
    "outcome": "New AI use cases are classified, checked and approved before they go live.",
    "tier": "minimal",
    "steps": [
-    {
-     "role": "Marketing AI Governance Specialist",
-     "activity": "AI use case risk classification",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Marketing AI Governance Specialist",
-     "activity": "GDPR impact assessment for AI tools",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Marketing AI Governance Specialist",
-     "activity": "AI vendor due diligence",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Marketing AI Governance Specialist",
-     "activity": "AI usage policy development",
-     "cls": "Human only"
-    },
-    {
-     "role": "Marketing AI Governance Specialist",
-     "activity": "AI disclosure labelling on content",
-     "cls": "Augmentation"
-    },
-    {
-     "role": "Marketing AI Governance Specialist",
-     "activity": "Stakeholder AI risk reporting",
-     "cls": "Augmentation"
-    }
+    "A397",
+    "A398",
+    "A400",
+    "A401",
+    "A405",
+    "A408"
+   ]
+  },
+  {
+   "id": "WF16",
+   "group": "Strategy and planning",
+   "name": "Brand positioning to guideline roll-out",
+   "outcome": "A clear brand position that is applied consistently across channels.",
+   "tier": "minimal",
+   "steps": [
+    "A117",
+    "A128",
+    "A114",
+    "A116",
+    "A134",
+    "A120",
+    "A125",
+    "A127",
+    "A131"
+   ]
+  },
+  {
+   "id": "WF17",
+   "group": "Go-to-market and relationships",
+   "name": "Product launch: positioning to launch campaign",
+   "outcome": "A launch that sales, partners and customers understand and act on.",
+   "tier": "limited",
+   "steps": [
+    "A133",
+    "A134",
+    "A137",
+    "A139",
+    "A138",
+    "A303",
+    "A061",
+    "A222",
+    "A140",
+    "A141"
+   ]
+  },
+  {
+   "id": "WF18",
+   "group": "Strategy and planning",
+   "name": "Annual marketing plan and budget",
+   "outcome": "An approved plan, budget and targets that leaders can track.",
+   "tier": "minimal",
+   "steps": [
+    "A252",
+    "A504",
+    "A508",
+    "A506",
+    "A507",
+    "A509",
+    "A516",
+    "A343",
+    "A505",
+    "A511",
+    "A518"
+   ]
+  },
+  {
+   "id": "WF19",
+   "group": "Content and creative",
+   "name": "Creative asset production and approval",
+   "outcome": "On-brand assets, approved first time, filed so they can be reused.",
+   "tier": "limited",
+   "steps": [
+    "A456",
+    "A437",
+    "A423",
+    "A424",
+    "A427",
+    "A123",
+    "A434",
+    "A466",
+    "A465",
+    "A435",
+    "A436"
+   ]
+  },
+  {
+   "id": "WF20",
+   "group": "Demand and channels",
+   "name": "Website page build, test and improve",
+   "outcome": "A page that loads fast, is accessible and converts better each cycle.",
+   "tier": "limited",
+   "steps": [
+    "A444",
+    "A440",
+    "A046",
+    "A452",
+    "A449",
+    "A446",
+    "A445",
+    "A454",
+    "A255"
+   ]
+  },
+  {
+   "id": "WF21",
+   "group": "Operations, data and delivery",
+   "name": "Campaign brief to delivery and review",
+   "outcome": "A campaign delivered on time and on budget, with lessons captured.",
+   "tier": "minimal",
+   "steps": [
+    "A456",
+    "A457",
+    "A458",
+    "A459",
+    "A460",
+    "A461",
+    "A463",
+    "A468",
+    "A470",
+    "A471"
+   ]
+  },
+  {
+   "id": "WF22",
+   "group": "Operations, data and delivery",
+   "name": "Agency and vendor selection to onboarding",
+   "outcome": "A supplier chosen on evidence, contracted fairly and briefed to deliver.",
+   "tier": "minimal",
+   "steps": [
+    "A472",
+    "A473",
+    "A474",
+    "A475",
+    "A476",
+    "A400",
+    "A478",
+    "A479",
+    "A477",
+    "A480",
+    "A481"
+   ]
+  },
+  {
+   "id": "WF23",
+   "group": "Content and creative",
+   "name": "Localising content and campaigns for a new market",
+   "outcome": "Content that reads as native and is legally safe in each market.",
+   "tier": "limited",
+   "steps": [
+    "A489",
+    "A490",
+    "A491",
+    "A493",
+    "A494",
+    "A495",
+    "A497",
+    "A499",
+    "A500",
+    "A502"
+   ]
+  },
+  {
+   "id": "WF24",
+   "group": "Go-to-market and relationships",
+   "name": "Regional field campaign",
+   "outcome": "Qualified pipeline from regional activity, followed up quickly.",
+   "tier": "minimal",
+   "steps": [
+    "A189",
+    "A200",
+    "A501",
+    "A198",
+    "A194",
+    "A195",
+    "A191",
+    "A196",
+    "A197",
+    "A199",
+    "A201"
+   ]
+  },
+  {
+   "id": "WF25",
+   "group": "Go-to-market and relationships",
+   "name": "Partner co-marketing and MDF",
+   "outcome": "Partner activity that produces measurable pipeline for the spend.",
+   "tier": "minimal",
+   "steps": [
+    "A287",
+    "A126",
+    "A275",
+    "A276",
+    "A282",
+    "A278",
+    "A279",
+    "A280",
+    "A286",
+    "A285"
+   ]
+  },
+  {
+   "id": "WF26",
+   "group": "AI and emerging",
+   "name": "AI search visibility (AEO/GEO)",
+   "outcome": "Your brand cited accurately in AI-generated answers.",
+   "tier": "limited",
+   "steps": [
+    "A355",
+    "A356",
+    "A357",
+    "A358",
+    "A004",
+    "A360",
+    "A359",
+    "A040",
+    "A366",
+    "A363",
+    "A364",
+    "A365"
+   ]
+  },
+  {
+   "id": "WF27",
+   "group": "AI and emerging",
+   "name": "Chatbot design to optimisation",
+   "outcome": "A chatbot that qualifies and helps visitors, and hands over cleanly.",
+   "tier": "limited",
+   "steps": [
+    "A380",
+    "A381",
+    "A383",
+    "A384",
+    "A385",
+    "A386",
+    "A397",
+    "A405",
+    "A392",
+    "A393",
+    "A387"
+   ]
+  },
+  {
+   "id": "WF28",
+   "group": "AI and emerging",
+   "name": "Synthetic content production and disclosure",
+   "outcome": "AI-generated media that is on-brand, properly rights-cleared and labelled.",
+   "tier": "limited",
+   "steps": [
+    "A420",
+    "A409",
+    "A410",
+    "A413",
+    "A412",
+    "A434",
+    "A422",
+    "A405",
+    "A421",
+    "A419"
+   ]
+  },
+  {
+   "id": "WF29",
+   "group": "AI and emerging",
+   "name": "AI tool and agent roll-out",
+   "outcome": "AI tools in daily use, within policy, with measured savings.",
+   "tier": "minimal",
+   "steps": [
+    "A372",
+    "A367",
+    "A400",
+    "A398",
+    "A373",
+    "A375",
+    "A368",
+    "A369",
+    "A403",
+    "A371",
+    "A378"
+   ]
+  },
+  {
+   "id": "WF30",
+   "group": "Go-to-market and relationships",
+   "name": "Customer retention and expansion",
+   "outcome": "Fewer renewals lost and more accounts growing.",
+   "tier": "minimal",
+   "steps": [
+    "A182",
+    "A183",
+    "A185",
+    "A187",
+    "A184",
+    "A180",
+    "A228",
+    "A174",
+    "A181",
+    "A353"
+   ]
+  },
+  {
+   "id": "WF31",
+   "group": "Go-to-market and relationships",
+   "name": "Crisis response",
+   "outcome": "A fast, consistent response that protects trust.",
+   "tier": "limited",
+   "steps": [
+    "A312",
+    "A106",
+    "A108",
+    "A313",
+    "A314",
+    "A105",
+    "A307",
+    "A316",
+    "A404",
+    "A471"
    ]
   }
+ ],
+ "groups": [
+  "Strategy and planning",
+  "Content and creative",
+  "Demand and channels",
+  "Go-to-market and relationships",
+  "Operations, data and delivery",
+  "AI and emerging"
  ]
 }
