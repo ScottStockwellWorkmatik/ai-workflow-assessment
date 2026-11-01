@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Workflow Assessment | Workmatik</title>
+<meta name="description" content="Choose the marketing workflows to improve with AI. Score value, feasibility and risk, see an indicative EU AI Act tier and get a ranked shortlist of use cases. Runs entirely in your browser.">
+<meta property="og:title" content="AI Workflow Assessment">
+<meta property="og:description" content="Score marketing workflows on value, feasibility and risk, and get a ranked shortlist of AI use cases. Runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://scottstockwellworkmatik.github.io/ai-workflow-assessment/">
+<meta property="og:site_name" content="Workmatik">
+<meta property="og:image" content="https://scottstockwellworkmatik.github.io/ai-workflow-assessment/og-image-workflow.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AI Workflow Assessment by Workmatik: workflows ranked by value, feasibility and risk">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="AI Workflows">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="css/styles.css?v=1">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div>
+      <img class="logo" src="assets/logo-black.svg" alt="Workmatik" id="logoScreen">
+      <h1>AI Workflow Assessment</h1>
+      <p class="sub">Choose the workflows to improve with AI. Score value, feasibility and risk, and get a ranked shortlist of use cases.</p>
+    </div>
+    <p class="privacy-chip" title="No data is sent to a server or stored by this page">Runs in your browser. Nothing is uploaded or stored.</p>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <p id="loadError" class="error" role="alert" hidden></p>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-workflows" aria-controls="panel-workflows" aria-selected="true">Workflows</button>
+    <button class="tab" role="tab" id="tab-assess" aria-controls="panel-assess" aria-selected="false" tabindex="-1">Assessment</button>
+    <button class="tab" role="tab" id="tab-results" aria-controls="panel-results" aria-selected="false" tabindex="-1">Results</button>
+    <button class="tab" role="tab" id="tab-compare" aria-controls="panel-compare" aria-selected="false" tabindex="-1">Compare</button>
+    <button class="tab" role="tab" id="tab-guide" aria-controls="panel-guide" aria-selected="false" tabindex="-1">How to use</button>
+  </div>
+
+  <!-- Workflows -->
+  <section id="panel-workflows" role="tabpanel" aria-labelledby="tab-workflows">
+    <div class="info-box">
+      <strong>Pick the workflows to assess.</strong> The starter list is built from activities in the AI Roles Assessment. Untick a workflow you do not run, untick any step that is not part of it, or add your own.
+    </div>
+    <form class="meta-form" id="metaForm" onsubmit="return false">
+      <label>Organisation or function
+        <input id="orgName" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Acme EMEA Marketing">
+      </label>
+      <label>Assessor
+        <input id="assessor" type="text" maxlength="60" autocomplete="off" placeholder="e.g. initials or name">
+      </label>
+      <label>Assessment date
+        <input id="assessDate" type="date">
+      </label>
+    </form>
+    <div class="actions" style="margin-top:0">
+      <button class="btn small" id="btnAll" type="button">Select all</button>
+      <button class="btn small" id="btnNone" type="button">Select none</button>
+      <span class="hint" id="wfCount"></span>
+    </div>
+    <div class="wf-grid" id="wfList" style="margin-top:12px"></div>
+
+    <div class="addform">
+      <h3>Add your own workflow</h3>
+      <label>Workflow name
+        <input id="newName" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Quarterly business review pack">
+      </label>
+      <label>Outcome it should deliver
+        <input id="newOutcome" type="text" maxlength="140" autocomplete="off" placeholder="e.g. A pack leaders can use to decide next quarter&rsquo;s spend">
+      </label>
+      <label>Steps, one per line
+        <textarea id="newSteps" maxlength="2000" placeholder="Pull performance data&#10;Draft commentary&#10;Review with leadership"></textarea>
+      </label>
+      <button class="btn primary" id="btnAdd" type="button">Add workflow</button>
+      <span class="hint" id="addMsg" aria-live="polite"></span>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="btnGoAssess" type="button">Go to the assessment</button>
+      <button class="btn" id="btnLoad" type="button">Load a saved assessment (XLSX)</button>
+      <input id="fileInput" type="file" accept=".xlsx" hidden>
+      <button class="btn" id="btnReset" type="button">Reset everything</button>
+    </div>
+    <ul id="loadMessages" class="messages" aria-live="polite"></ul>
+  </section>
+
+  <!-- Assessment -->
+  <section id="panel-assess" role="tabpanel" aria-labelledby="tab-assess" hidden>
+    <div class="info-box">
+      <strong>How to score.</strong> For each workflow, answer seven questions from 1 to 5 and choose the indicative EU AI Act tier. Score the workflow as it runs today. Value and feasibility are better when high. Risk is worse when high.
+    </div>
+    <div class="progress" aria-live="polite"><div class="bar"><span id="progBar" style="width:0"></span></div><span id="progText" class="hint"></span></div>
+    <div class="chips" id="assessChips" role="group" aria-label="Filter workflows"></div>
+    <div id="assessList"></div>
+    <div class="actions">
+      <button class="btn primary" id="btnGoResults" type="button">See results</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="panel-results" role="tabpanel" aria-labelledby="tab-results" hidden>
+    <div id="resultsEmpty" class="empty">Score at least one workflow on the Assessment tab to see results.</div>
+    <div id="resultsBody" hidden>
+      <div class="summary-grid" id="summaryCards"></div>
+      <div id="flags"></div>
+
+      <div class="card">
+        <h2>Ranked workflows</h2>
+        <p class="hint">Priority index (0 to 100) = value &times; feasibility, scaled, then reduced by up to 40% as risk rises. Workflows with a prohibited tier are not ranked.</p>
+        <div class="table-scroll"><table class="rank-table" id="rankTable"></table></div>
+      </div>
+
+      <div class="card">
+        <h2>Value and feasibility <span class="hint">(thresholds are editable)</span></h2>
+        <div class="thr">
+          <label><span class="lbl">Value is high above</span>
+            <input id="thrValue" type="number" min="1" max="5" step="0.5" value="3">
+          </label>
+          <label><span class="lbl">Feasibility is high above</span>
+            <input id="thrFeas" type="number" min="1" max="5" step="0.5" value="3">
+          </label>
+        </div>
+        <div id="quad" class="quad" role="img" aria-label="Chart of workflows by feasibility and value"></div>
+        <ul class="legend" id="quadLegend"></ul>
+        <p class="hint">Both thresholds are the author&rsquo;s proposals and have no published source. Change them to test other values.</p>
+      </div>
+
+      <div class="card">
+        <h2>Use cases to start with</h2>
+        <p class="hint">The top workflows in the Start here group, with the capabilities worth checking in the AI Capability Assessment before you build.</p>
+        <div id="useCases"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="btnDownload" type="button">Download results (XLSX)</button>
+        <button class="btn" id="btnCmpGo" type="button">Compare with earlier assessments</button>
+      </div>
+      <p class="hint">Keep the downloaded file. It is your record, and you can load it back on the Workflows tab to continue or compare.</p>
+    </div>
+  </section>
+
+  <!-- Compare -->
+  <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+    <div class="info-box">
+      <strong>Review change over time.</strong> Add one or more earlier assessments (the XLSX files you downloaded) and compare them with each other and with the assessment on this page. Files are read in your browser and are not uploaded.
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btnCmpAdd" type="button">Add earlier assessments (XLSX)</button>
+      <input id="cmpFiles" type="file" accept=".xlsx" multiple hidden>
+      <button class="btn" id="cmpClear" type="button" hidden>Remove all earlier files</button>
+      <label class="check"><input type="checkbox" id="cmpCurrent" checked> Include the assessment currently on this page</label>
+    </div>
+    <ul id="cmpMessages" class="messages" aria-live="polite"></ul>
+    <div id="cmpEmpty" class="empty">Add an earlier assessment file, or score some workflows, to start comparing.</div>
+    <div id="cmpBody" hidden>
+      <div class="card">
+        <h2>Assessments compared</h2>
+        <div class="table-scroll"><table id="cmpSnaps"></table></div>
+      </div>
+      <div class="card">
+        <h2>Priority index by workflow</h2>
+        <p class="hint" id="cmpNote"></p>
+        <div class="table-scroll"><table id="cmpTable"></table></div>
+      </div>
+      <div class="actions"><button class="btn primary" id="btnCmpDownload" type="button">Download comparison (XLSX)</button></div>
+    </div>
+  </section>
+
+  <!-- Guide -->
+  <section id="panel-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+    <div class="card">
+      <h2>What this tool does</h2>
+      <p>It helps you decide which marketing workflows to improve with AI first. A <strong>workflow</strong> is a repeatable sequence of steps that turns an input into an outcome, usually across several roles. A <strong>use case</strong> is a specific application of AI to a workflow or step. You score each workflow, and the tool ranks them and suggests the use cases to start with.</p>
+    </div>
+    <div class="card">
+      <h2>The seven questions</h2>
+      <div class="table-scroll"><table id="guideQs"></table></div>
+    </div>
+    <div class="card">
+      <h2>How the scores work</h2>
+      <ol class="steps">
+        <li><strong>Value.</strong> The average of the two value scores, 1 to 5.</li>
+        <li><strong>Feasibility.</strong> The average of the three feasibility scores, 1 to 5.</li>
+        <li><strong>Risk.</strong> The average of the two risk scores, 1 to 5. Higher means riskier.</li>
+        <li><strong>Priority index.</strong> Value multiplied by feasibility, scaled to 100, then multiplied by a risk factor that falls from 1.0 at risk 1 to 0.6 at risk 5.</li>
+        <li><strong>Groups.</strong> Start here, Prepare first, Quick win or Park, set by whether value and feasibility are above the thresholds on the Results tab.</li>
+        <li><strong>Prohibited tier.</strong> A workflow marked prohibited is shown with a warning, is not ranked, and should not go ahead.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>The indicative EU AI Act tier</h2>
+      <div class="table-scroll"><table id="guideTiers"></table></div>
+      <p class="hint">The tier is a prompt to check, not a legal finding. It is set per workflow, so judge it by the most sensitive use of AI in that workflow. Obligations and dates under the Act have been under review, so check the current position and take legal advice. Source: <a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj" target="_blank" rel="noopener">Regulation (EU) 2024/1689, Artificial Intelligence Act</a>, European Parliament and Council of the European Union, June 2024.</p>
+    </div>
+    <div class="card">
+      <h2>Save, continue or compare</h2>
+      <ol class="steps">
+        <li><strong>Save your work.</strong> On the Results tab, select <em>Download results (XLSX)</em>. You can download at any point, including part-finished.</li>
+        <li><strong>Come back later.</strong> On the Workflows tab, select <em>Load a saved assessment (XLSX)</em> and choose your file. Selected workflows, steps, your own workflows, scores, tiers, notes and thresholds all come back.</li>
+        <li><strong>Compare.</strong> On the Compare tab, add earlier files to see how priority has moved. Each file needs the assessment date, which the download fills in.</li>
+      </ol>
+      <p class="hint">Loading a file replaces what is on the page, so download first if you have unsaved work. Only files downloaded from this tool will load. The page keeps nothing between visits, so the file is your only record.</p>
+    </div>
+    <div class="card">
+      <h2>Where the starter workflows come from</h2>
+      <p>Each starter workflow is a sequence of activities from the AI Roles Assessment, with the classification shown there (full automation, augmentation or human only). The grouping and order of steps are the author&rsquo;s judgement and have no published source. Treat them as a starting point to challenge and adapt for your team.</p>
+    </div>
+    <div class="card">
+      <h2>About your data</h2>
+      <p>This page has no server, no account and no tracking. Your entries exist only in this browser tab and are lost when you close or refresh it, unless you download the XLSX. Loaded files are read locally and never uploaded.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>&copy; Workmatik. Framework version <span id="fwVersion"></span>. This tool supports planning and is not legal advice.</p>
+  </div>
+</footer>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/exceljs.min.js"></script>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>

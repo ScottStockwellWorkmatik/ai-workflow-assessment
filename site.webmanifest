@@ -1,0 +1,11 @@
+{
+  "name": "AI Workflow Assessment",
+  "short_name": "AI Workflows",
+  "icons": [
+    {"src": "/ai-workflow-assessment/web-app-manifest-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "/ai-workflow-assessment/web-app-manifest-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "theme_color": "#F25D27",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

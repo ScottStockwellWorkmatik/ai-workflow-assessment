@@ -1,0 +1,773 @@
+{
+ "version": "1.0.0",
+ "date": "1 November 2026",
+ "questions": [
+  {
+   "id": "V1",
+   "group": "value",
+   "name": "Business impact",
+   "q": "If this workflow ran much better, how much would it move a result that matters, such as pipeline, revenue, cost, speed or quality?",
+   "a": [
+    "Little or no effect on results",
+    "Noticeable effect on one result",
+    "Clear, large effect on a key result"
+   ]
+  },
+  {
+   "id": "V2",
+   "group": "value",
+   "name": "Effort and volume",
+   "q": "How much time and effort does this workflow take across the team?",
+   "a": [
+    "Run rarely, small effort",
+    "Run regularly, moderate effort",
+    "Run constantly, a large share of team time"
+   ]
+  },
+  {
+   "id": "F1",
+   "group": "feasibility",
+   "name": "Repeatability",
+   "q": "How consistent are the steps and outputs from one run to the next?",
+   "a": [
+    "Different every time, mostly judgement",
+    "Some standard steps, some variation",
+    "Same steps and outputs every run"
+   ]
+  },
+  {
+   "id": "F2",
+   "group": "feasibility",
+   "name": "Data and content readiness",
+   "q": "Are the inputs (data, content, briefs, brand material) available, accurate and accessible to AI tools?",
+   "a": [
+    "Scattered, poor or inaccessible",
+    "Mostly available, with gaps",
+    "Complete, clean and accessible"
+   ]
+  },
+  {
+   "id": "F3",
+   "group": "feasibility",
+   "name": "Tool and integration readiness",
+   "q": "Are suitable AI-capable tools in place, or easy to add and connect to your current systems?",
+   "a": [
+    "No suitable tools, hard to integrate",
+    "Tools exist but need setup or integration",
+    "Tools in place and connected"
+   ]
+  },
+  {
+   "id": "R1",
+   "group": "risk",
+   "name": "Consequence of an error",
+   "q": "If AI got a step wrong and nobody caught it, how serious would the consequence be?",
+   "a": [
+    "Minor, easy to fix internally",
+    "Noticeable: rework, wasted spend or some reputational effect",
+    "Serious: legal, financial or major brand harm"
+   ]
+  },
+  {
+   "id": "R2",
+   "group": "risk",
+   "name": "Data sensitivity",
+   "q": "How sensitive is the data or content this workflow handles?",
+   "a": [
+    "Public or non-sensitive",
+    "Internal or business-confidential",
+    "Personal, client-confidential or regulated"
+   ]
+  }
+ ],
+ "tiers": [
+  {
+   "id": "minimal",
+   "name": "Minimal",
+   "text": "None of the other descriptions apply."
+  },
+  {
+   "id": "limited",
+   "name": "Limited (transparency)",
+   "text": "AI talks to people as a chatbot, or generates or alters text, images, audio or video that people will see. Disclosure duties may apply."
+  },
+  {
+   "id": "high",
+   "name": "High-risk",
+   "text": "AI supports decisions about people in areas the Act lists, such as recruitment, worker management, education or access to essential services."
+  },
+  {
+   "id": "prohibited",
+   "name": "Prohibited",
+   "text": "Uses a practice the Act bans, such as manipulating people, social scoring, or inferring employees' emotions."
+  }
+ ],
+ "quadrants": [
+  {
+   "id": "start",
+   "name": "Start here",
+   "text": "High value and high feasibility.",
+   "colour": "#F25D27"
+  },
+  {
+   "id": "prepare",
+   "name": "Prepare first",
+   "text": "High value, but not yet feasible. Close the gaps before building.",
+   "colour": "#024873"
+  },
+  {
+   "id": "quick",
+   "name": "Quick win",
+   "text": "Easier but lower value. Do when capacity allows.",
+   "colour": "#5DC1FF"
+  },
+  {
+   "id": "park",
+   "name": "Park",
+   "text": "Lower value and not yet feasible. Revisit later.",
+   "colour": "#8A949C"
+  }
+ ],
+ "thresholds": {
+  "value": 3,
+  "feasibility": 3
+ },
+ "capabilities": {
+  "F1": [
+   "W1",
+   "Workflow mapping and prioritisation"
+  ],
+  "F2": [
+   "D2",
+   "Data quality and availability"
+  ],
+  "F3": [
+   "D4",
+   "AI tool and platform stack"
+  ],
+  "R": [
+   "G1",
+   "Policy and acceptable use"
+  ],
+  "R2": [
+   "G4",
+   "Risk assessment and monitoring"
+  ],
+  "H": [
+   "W3",
+   "Human-in-the-loop design"
+  ]
+ },
+ "workflows": [
+  {
+   "id": "W01",
+   "name": "Content planning to publication",
+   "outcome": "Published content that matches the plan and the brand.",
+   "tier": "limited",
+   "steps": [
+    {
+     "role": "Content Strategist",
+     "activity": "Content gap analysis",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Content Strategist",
+     "activity": "Editorial calendar creation",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Content Strategist",
+     "activity": "Writing content briefs",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Content Writer / Copywriter",
+     "activity": "Blog post writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Content Writer / Copywriter",
+     "activity": "Fact checking",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Content Writer / Copywriter",
+     "activity": "Brand voice alignment checking",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Content Strategist",
+     "activity": "Editing and proofreading",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Content Strategist",
+     "activity": "Scheduling and publishing content",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Content Strategist",
+     "activity": "Content performance reporting",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W02",
+   "name": "Email campaign build and send",
+   "outcome": "Emails that reach the right segment, render correctly and report results.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Email Marketing Specialist",
+     "activity": "Audience segmentation strategy",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Email Marketing Specialist",
+     "activity": "Email copywriting",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Email Marketing Specialist",
+     "activity": "Subject line creation and testing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Email Marketing Specialist",
+     "activity": "Dynamic content configuration",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Email Marketing Specialist",
+     "activity": "Spam testing",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Marketing Operations Specialist",
+     "activity": "Email deployment and testing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Email Marketing Specialist",
+     "activity": "Open and click rate reporting",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W03",
+   "name": "Lead scoring, qualification and routing",
+   "outcome": "Leads scored, qualified and handed to sales within the agreed time.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Demand Generation Specialist",
+     "activity": "Lead data enrichment",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Demand Generation Specialist",
+     "activity": "Lead scoring model configuration",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Demand Generation Specialist",
+     "activity": "Lead qualification and routing",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Marketing Operations Specialist",
+     "activity": "Lead routing rule configuration",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Revenue Operations Specialist",
+     "activity": "SLA definition between marketing and sales",
+     "cls": "Human only"
+    },
+    {
+     "role": "Revenue Operations Specialist",
+     "activity": "Pipeline reporting and analysis",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W04",
+   "name": "Paid campaign setup to optimisation",
+   "outcome": "Paid campaigns that launch accurately and improve over time.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Demand Generation Specialist",
+     "activity": "Campaign strategy development",
+     "cls": "Human only"
+    },
+    {
+     "role": "Performance Marketing Specialist",
+     "activity": "Keyword research and selection",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Performance Marketing Specialist",
+     "activity": "Ad copy creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Performance Marketing Specialist",
+     "activity": "Campaign structure setup",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Performance Marketing Specialist",
+     "activity": "Bid strategy configuration",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Performance Marketing Specialist",
+     "activity": "Negative keyword management",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Demand Generation Specialist",
+     "activity": "Campaign performance reporting",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Demand Generation Specialist",
+     "activity": "Conversion rate optimisation",
+     "cls": "Augmentation"
+    }
+   ]
+  },
+  {
+   "id": "W05",
+   "name": "SEO review to content optimisation",
+   "outcome": "Higher organic visibility from fixes and optimised pages.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "SEO Specialist",
+     "activity": "Site crawl and audit",
+     "cls": "Full automation"
+    },
+    {
+     "role": "SEO Specialist",
+     "activity": "Keyword research",
+     "cls": "Full automation"
+    },
+    {
+     "role": "SEO Specialist",
+     "activity": "Content optimisation recommendations",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "SEO Specialist",
+     "activity": "Meta title and description writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "SEO Specialist",
+     "activity": "Internal linking strategy",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "SEO Specialist",
+     "activity": "Rank tracking and reporting",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W06",
+   "name": "Social content to community response",
+   "outcome": "Consistent social presence and timely responses to the audience.",
+   "tier": "limited",
+   "steps": [
+    {
+     "role": "Social Media Specialist",
+     "activity": "Content calendar creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Social Media Specialist",
+     "activity": "Post copy writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Social Media Specialist",
+     "activity": "Image and graphic creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Social Media Specialist",
+     "activity": "Comment moderation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Social Media Specialist",
+     "activity": "Responding to DMs and enquiries",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Social Media Specialist",
+     "activity": "Sentiment monitoring",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Social Media Specialist",
+     "activity": "Engagement rate reporting",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W07",
+   "name": "Marketing performance reporting and attribution",
+   "outcome": "Trusted, regular reporting that links activity to pipeline and revenue.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Performance Marketing Specialist",
+     "activity": "UTM and tracking parameter management",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Marketing Data Analyst",
+     "activity": "Data source integration",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Marketing Data Analyst",
+     "activity": "Data cleaning and normalisation",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Marketing Data Analyst",
+     "activity": "Attribution modelling",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Marketing Data Analyst",
+     "activity": "KPI dashboard creation",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Marketing Data Analyst",
+     "activity": "Executive reporting",
+     "cls": "Augmentation"
+    }
+   ]
+  },
+  {
+   "id": "W08",
+   "name": "Sales enablement content",
+   "outcome": "Sales has current messaging and assets to use in conversations.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Product Marketing Manager",
+     "activity": "Messaging framework creation",
+     "cls": "Human only"
+    },
+    {
+     "role": "Product Marketing Manager",
+     "activity": "Battle card creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Product Marketing Manager",
+     "activity": "Sales deck creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Product Marketing Manager",
+     "activity": "Objection handling guide creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Product Marketing Manager",
+     "activity": "Product demo script writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Product Marketing Manager",
+     "activity": "Sales training content creation",
+     "cls": "Augmentation"
+    }
+   ]
+  },
+  {
+   "id": "W09",
+   "name": "Competitive intelligence cycle",
+   "outcome": "Sales and leaders get timely, usable intelligence on competitors.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Competitor website and content monitoring",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Competitor pricing tracking",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Competitor product feature tracking",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Competitive landscape mapping",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Competitive battle card creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Competitive intelligence newsletter",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Competitive Intelligence Analyst",
+     "activity": "Sales team competitive briefing",
+     "cls": "Human only"
+    }
+   ]
+  },
+  {
+   "id": "W10",
+   "name": "Account-based programme for target accounts",
+   "outcome": "Target accounts engaged with relevant content and progressing.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "ABM Specialist",
+     "activity": "Target account list selection",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "ABM Specialist",
+     "activity": "Account research and profiling",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "ABM Specialist",
+     "activity": "Stakeholder mapping",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "ABM Specialist",
+     "activity": "Personalised content creation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "ABM Specialist",
+     "activity": "Account advertising setup (LinkedIn/display)",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "ABM Specialist",
+     "activity": "Account engagement scoring",
+     "cls": "Full automation"
+    },
+    {
+     "role": "ABM Specialist",
+     "activity": "Pipeline influence reporting",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W11",
+   "name": "Event: promotion to follow-up",
+   "outcome": "Registrations, attendance and follow-up that turn into pipeline.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "Event registration setup",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "Pre-event promotional campaign",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "Speaker briefing and management",
+     "cls": "Human only"
+    },
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "Attendee communication",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "On-site lead capture management",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "Post-event follow-up sequence",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Event Marketing Specialist",
+     "activity": "Account engagement at events reporting",
+     "cls": "Full automation"
+    }
+   ]
+  },
+  {
+   "id": "W12",
+   "name": "Customer research to insight",
+   "outcome": "Research findings that teams understand and act on.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Survey design",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Survey deployment and management",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Interview transcription",
+     "cls": "Full automation"
+    },
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Qualitative data coding and thematic analysis",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Insight synthesis",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Research report writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Insights Analyst",
+     "activity": "Insight dissemination across teams",
+     "cls": "Human only"
+    }
+   ]
+  },
+  {
+   "id": "W13",
+   "name": "Customer advocacy and case studies",
+   "outcome": "A steady supply of customer references and approved case studies.",
+   "tier": "limited",
+   "steps": [
+    {
+     "role": "Customer Marketing Specialist",
+     "activity": "Customer reference identification",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Marketing Specialist",
+     "activity": "Testimonial collection and curation",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Marketing Specialist",
+     "activity": "Case study development",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Customer Marketing Specialist",
+     "activity": "Review site campaign management",
+     "cls": "Augmentation"
+    }
+   ]
+  },
+  {
+   "id": "W14",
+   "name": "Press release to media coverage",
+   "outcome": "Accurate announcements that earn coverage, with impact measured.",
+   "tier": "limited",
+   "steps": [
+    {
+     "role": "PR / Communications Specialist",
+     "activity": "Journalist research and targeting",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "PR / Communications Specialist",
+     "activity": "Press release writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "PR / Communications Specialist",
+     "activity": "Media pitch writing",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "PR / Communications Specialist",
+     "activity": "Media coverage tracking",
+     "cls": "Full automation"
+    },
+    {
+     "role": "PR / Communications Specialist",
+     "activity": "PR impact reporting",
+     "cls": "Augmentation"
+    }
+   ]
+  },
+  {
+   "id": "W15",
+   "name": "AI use case approval and governance",
+   "outcome": "New AI use cases are classified, checked and approved before they go live.",
+   "tier": "minimal",
+   "steps": [
+    {
+     "role": "Marketing AI Governance Specialist",
+     "activity": "AI use case risk classification",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Marketing AI Governance Specialist",
+     "activity": "GDPR impact assessment for AI tools",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Marketing AI Governance Specialist",
+     "activity": "AI vendor due diligence",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Marketing AI Governance Specialist",
+     "activity": "AI usage policy development",
+     "cls": "Human only"
+    },
+    {
+     "role": "Marketing AI Governance Specialist",
+     "activity": "AI disclosure labelling on content",
+     "cls": "Augmentation"
+    },
+    {
+     "role": "Marketing AI Governance Specialist",
+     "activity": "Stakeholder AI risk reporting",
+     "cls": "Augmentation"
+    }
+   ]
+  }
+ ]
+}
