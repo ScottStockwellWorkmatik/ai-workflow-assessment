@@ -325,3 +325,15 @@ td.chg.down-bad, .ph.down-bad { color: #B42318; }
 .wf-supports{margin:8px 0 2px;padding:8px 10px;background:#EAF9FF;border-radius:8px;font-size:14px}
 .wf-supports .lbl{font-weight:600;color:var(--navy);margin-right:8px}
 .wf-supports label{display:inline-flex;gap:6px;align-items:center;margin:2px 14px 2px 0;cursor:pointer}
+
+.sync-panel, .gate-panel { background: #fff; border: 1.5px solid #5DC1FF; border-radius: 10px; padding: 14px 16px; margin: 0 0 16px; }
+.sync-panel h3, .gate-panel h3 { margin: 0 0 8px; font-size: 16px; color: var(--navy); }
+.sync-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 8px 10px; border-radius: 6px; background: var(--pale); margin: 6px 0; font-size: 14px; }
+.sync-row.bad { background: #FFF3EC; border-left: 4px solid var(--orange); }
+.sync-row.warn { background: #FFF9E5; border-left: 4px solid #E0A800; }
+.sync-row.ok { background: #E9F7EF; border-left: 4px solid #2E9E5B; }
+.sync-list { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.gate-list { list-style: none; padding: 0; margin: 8px 0 12px; }
+.gate-list li { padding: 6px 10px; border-radius: 6px; margin: 4px 0; font-size: 14px; }
+.gate-list li.ok { background: #E9F7EF; }
+.gate-list li.bad { background: #FFF3EC; }

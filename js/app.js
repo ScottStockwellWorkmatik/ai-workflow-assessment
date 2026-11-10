@@ -2,7 +2,7 @@
   'use strict';
   var FW = null;
   var CAT = null, ACT = {}, ROLEBYID = {}, CUSTCAT = { roles: [], acts: [] }, lastRole = {};
-  var state = { off: {}, stepsOff: {}, custom: [], extra: {}, roles: null, scores: {}, tiers: {}, notes: {}, filter: 'all', strategy: null, supports: {} };
+  var state = { off: {}, stepsOff: {}, custom: [], extra: {}, roles: null, scores: {}, tiers: {}, notes: {}, filter: 'all', strategy: null, supports: {}, bypass: false };
   var CLS = ['Full automation', 'Augmentation', 'Human only'];
   var openSet = {};
   var $ = function (id) { return document.getElementById(id); };
@@ -244,7 +244,7 @@
       list.forEach(function (w) { host.appendChild(wfCard(w)); });
     });
     $('wfCount').textContent = n + ' of ' + all.length + ' workflows selected';
-    renderRolesStatus();
+    renderRolesStatus(); renderSync();
   }
   function renderRolesStatus() {
     var h = $('rolesStatus'); if (!h) return; h.textContent = '';
@@ -263,6 +263,119 @@
     state.custom.push({ id: id, name: name.slice(0, 80), outcome: out, group: grp, tier: 'minimal', custom: true, steps: lines.map(function (l) { return { role: '', activity: l, cls: '' }; }) });
     $('newName').value = ''; $('newOutcome').value = ''; $('newSteps').value = ''; msg.textContent = ' Added to ' + grp + '.';
     openSet[id] = true; renderWorkflows();
+  }
+
+
+  // ---------- alignment between workflows and the Roles file (the checkpoint before scoring)
+  function align() {
+    var sel = allWf().filter(included), used = {}, out = [], needTag = [];
+    sel.forEach(function (w) {
+      stepsOf(w).forEach(function (st, i) {
+        if (!stepOn(w, i) || !st.aid) return;
+        used[st.aid] = true; if (state.roles && !state.roles.scope[st.aid]) out.push({ w: w, st: st });
+      });
+      if (state.strategy && !(state.supports[w.id] || []).length) needTag.push(w);
+    });
+    var noScope = [];
+    if (state.roles) sel.forEach(function (w) {
+      var steps = stepsOf(w), hasAid = false, any = false;
+      steps.forEach(function (st, i) { if (st.aid) { hasAid = true; if (stepOn(w, i) && state.roles.scope[st.aid]) any = true; } });
+      if (hasAid && !any) noScope.push(w);
+    });
+    var unused = [], cand = [];
+    if (state.roles) {
+      Object.keys(state.roles.scope).forEach(function (id) { if (!used[id] && ACT[id]) unused.push(ACT[id]); });
+      var un = {}; unused.forEach(function (a) { un[a.id] = 1; });
+      allWf().filter(function (w) { return !included(w); }).forEach(function (w) {
+        var n = stepsOf(w).filter(function (st) { return st.aid && un[st.aid]; }).length; if (n) cand.push({ w: w, n: n });
+      });
+    }
+    return { sel: sel, out: out, noScope: noScope, unused: unused, cand: cand, needTag: needTag, rolesLoaded: !!state.roles, ok: !!state.roles && !out.length && !noScope.length && sel.length > 0 };
+  }
+  function plural(n, a, b) { return n + ' ' + (n === 1 ? a : b); }
+  function untickOutOfScope(a) {
+    a.out.forEach(function (o) {
+      var idx = stepsOf(o.w).indexOf(o.st); if (idx < 0) return;
+      if (!state.stepsOff[o.w.id]) state.stepsOff[o.w.id] = {}; state.stepsOff[o.w.id][idx] = true;
+    });
+  }
+  function renderSync() {
+    var host = $('syncPanel'); host.textContent = '';
+    if (!state.roles) { host.hidden = true; return; }
+    var a = align(), items = [];
+    if (a.out.length) {
+      var row = el('div', 'sync-row bad');
+      row.appendChild(el('span', '', plural(a.out.length, 'ticked step is', 'ticked steps are') + ' outside your roles scope. Roles and workflows are out of step.'));
+      var b1 = el('button', 'btn', 'Untick them'); b1.type = 'button'; b1.addEventListener('click', function () { untickOutOfScope(a); renderWorkflows(); }); row.appendChild(b1);
+      items.push(row);
+    }
+    if (a.noScope.length) {
+      var rowN = el('div', 'sync-row bad');
+      rowN.appendChild(el('span', '', plural(a.noScope.length, 'selected workflow has', 'selected workflows have') + ' no step in your roles scope: ' + a.noScope.slice(0, 4).map(function (w) { return w.name; }).join('; ') + (a.noScope.length > 4 ? ' and ' + (a.noScope.length - 4) + ' more' : '') + '. Either add its roles in the Roles Assessment, or switch it off.'));
+      var bN = el('button', 'btn', 'Switch them off'); bN.type = 'button'; bN.addEventListener('click', function () { a.noScope.forEach(function (w) { state.off[w.id] = true; }); renderWorkflows(); }); rowN.appendChild(bN);
+      items.push(rowN);
+    }
+    if (a.unused.length) {
+      var byRole = {}; a.unused.forEach(function (x) { (byRole[x.role] = byRole[x.role] || []).push(x); });
+      var row2 = el('div', 'sync-row');
+      var t = el('div'); t.appendChild(el('strong', '', plural(a.unused.length, 'activity', 'activities') + ' in your roles scope ' + (a.unused.length === 1 ? 'is' : 'are') + ' not in any selected workflow.'));
+      t.appendChild(document.createTextNode(' Your role review suggests work that no workflow covers yet.'));
+      var ul = el('ul', 'sync-list');
+      Object.keys(byRole).sort().forEach(function (r) { ul.appendChild(el('li', '', r + ': ' + byRole[r].map(function (x) { return x.activity; }).slice(0, 4).join('; ') + (byRole[r].length > 4 ? ' and ' + (byRole[r].length - 4) + ' more' : ''))); });
+      t.appendChild(ul); row2.appendChild(t);
+      var b2 = el('button', 'btn', 'Add them as a new workflow'); b2.type = 'button';
+      b2.addEventListener('click', function () {
+        var id = nextCustomId(), steps = a.unused.map(function (x) { return mkStep(x.id); }).filter(Boolean);
+        state.custom.push({ id: id, name: 'Work added from the roles review', outcome: '', group: FW.groups[0], tier: 'minimal', custom: true, steps: steps });
+        openSet[id] = true; renderWorkflows();
+      });
+      row2.appendChild(b2); items.push(row2);
+    }
+    a.cand.sort(function (x, y) { return y.n - x.n; }).slice(0, 8).forEach(function (c) {
+      var row3 = el('div', 'sync-row');
+      row3.appendChild(el('span', '', 'Switched off: ' + c.w.name + ' has ' + plural(c.n, 'step', 'steps') + ' your roles need.'));
+      var b3 = el('button', 'btn', 'Switch on'); b3.type = 'button';
+      b3.addEventListener('click', function () {
+        delete state.off[c.w.id]; state.stepsOff[c.w.id] = {};
+        stepsOf(c.w).forEach(function (st, i) { if (st.aid && !state.roles.scope[st.aid]) state.stepsOff[c.w.id][i] = true; });
+        renderWorkflows();
+      });
+      row3.appendChild(b3); items.push(row3);
+    });
+    if (a.needTag.length) items.push(el('div', 'sync-row warn', plural(a.needTag.length, 'selected workflow', 'selected workflows') + ' ' + (a.needTag.length === 1 ? 'is' : 'are') + ' not tagged to a priority. Open a workflow and tick the measures it supports.'));
+    if (!items.length) items.push(el('div', 'sync-row ok', 'Workflows and roles are in step. You can go on to the assessment.'));
+    host.appendChild(el('h3', '', 'Workflows and roles check'));
+    items.forEach(function (i) { host.appendChild(i); });
+    host.hidden = false;
+  }
+  function renderGate() {
+    var a = align(), host = $('gatePanel'); host.textContent = '';
+    var lock = !a.ok && !state.bypass;
+    ['progBarWrap', 'assessChips', 'assessActions'].forEach(function (id) { if ($(id)) $(id).hidden = lock; });
+    $('assessList').hidden = lock;
+    if (!lock) {
+      host.hidden = !(a.ok && (a.unused.length || a.needTag.length)) && !state.bypass;
+      if (state.bypass) { host.appendChild(el('p', 'sync-row warn', 'You are scoring without the roles check. The saved file records this.')); }
+      else if (a.ok) {
+        if (a.unused.length) host.appendChild(el('p', 'sync-row warn', plural(a.unused.length, 'activity', 'activities') + ' in your roles scope ' + (a.unused.length === 1 ? 'is' : 'are') + ' in no selected workflow. Check the Workflows tab before you finish.'));
+        if (a.needTag.length) host.appendChild(el('p', 'sync-row warn', plural(a.needTag.length, 'workflow', 'workflows') + ' not tagged to a priority.'));
+      }
+      return;
+    }
+    host.hidden = false;
+    host.appendChild(el('h3', '', 'Check workflows and roles are in step before you score'));
+    host.appendChild(el('p', 'hint', 'Scoring uses the Full automation, Augmentation and Human only classifications from the AI Roles Assessment, so both need to be finished and agree first.'));
+    var ul = el('ul', 'gate-list');
+    function check(ok, text) { ul.appendChild(el('li', ok ? 'ok' : 'bad', (ok ? 'Done: ' : 'To do: ') + text)); }
+    check(a.sel.length > 0, a.sel.length ? plural(a.sel.length, 'workflow', 'workflows') + ' selected' : 'select the workflows to assess');
+    check(a.rolesLoaded, a.rolesLoaded ? 'Roles file loaded' : 'complete the AI Roles Assessment, download its file, then load it on the Workflows tab or drop it on this page');
+    if (a.rolesLoaded) check(!a.noScope.length, a.noScope.length ? plural(a.noScope.length, 'selected workflow has', 'selected workflows have') + ' no step in your roles scope (Workflows tab shows how to fix this)' : 'every selected workflow has work in your roles scope');
+    if (a.rolesLoaded) check(!a.out.length, a.out.length ? plural(a.out.length, 'ticked step is', 'ticked steps are') + ' outside your roles scope (Workflows tab shows how to fix this)' : 'every ticked step is in your roles scope');
+    host.appendChild(ul);
+    var act = el('div', 'actions');
+    var g = el('button', 'btn primary', 'Go to Workflows'); g.type = 'button'; g.addEventListener('click', function () { showTab('workflows'); });
+    var s = el('button', 'lnk', 'Score without the roles check'); s.type = 'button'; s.addEventListener('click', function () { state.bypass = true; renderAssess(); });
+    act.appendChild(g); act.appendChild(s); host.appendChild(act);
   }
 
   // ---------- strategy import
@@ -335,8 +448,10 @@
       steps.forEach(function (st, i) {
         if (st.aid) { hasAid = true; used[st.aid] = true; if (scope[st.aid]) any = true; else state.stepsOff[w.id][i] = true; }
       });
-      if (hasAid && !any) { state.off[w.id] = true; offWf++; } else { delete state.off[w.id]; withScope++; }
+      if (!included(w)) return;
+      if (hasAid && !any) offWf++; else withScope++;
     });
+    used = {}; allWf().filter(included).forEach(function (w) { stepsOf(w).forEach(function (st, i) { if (st.aid && stepOn(w, i)) used[st.aid] = true; }); });
     var unused = Object.keys(scope).filter(function (id) { return !used[id]; }).length;
     if (parsed.org && !Workmatik.get().org) Workmatik.set({ org: String(parsed.org).slice(0, 80) });
     return { ok: true, n: n, withScope: withScope, offWf: offWf, unused: unused, custom: CUSTCAT.acts.length };
@@ -351,7 +466,7 @@
         var r = applyRoles(parsed, file.name);
         if (!r.ok) { msg('That file has no activities in scope that this tool recognises.', false); return; }
         renderWorkflows(); renderAssess();
-        msg('Loaded ' + r.n + ' activities in scope from ' + file.name + '. ' + r.withScope + ' workflow' + (r.withScope === 1 ? ' has' : 's have') + ' at least one step in your scope; ' + r.offWf + ' with none were switched off. Steps outside your scope are unticked, and you can tick them back on.', true);
+        msg('Loaded ' + r.n + ' activities in scope from ' + file.name + '. Steps outside your roles scope are unticked in your selected workflows. ' + (r.offWf ? r.offWf + ' selected workflow' + (r.offWf === 1 ? ' has' : 's have') + ' no step in your roles scope: see the check below.' : 'Every selected workflow has at least one step in scope.'), true);
         if (r.unused) msg(r.unused + ' of your in-scope activit' + (r.unused === 1 ? 'y is' : 'ies are') + ' not in any workflow yet. Use Add a step on a workflow to include ' + (r.unused === 1 ? 'it' : 'them') + (r.custom ? ', including your custom ones' : '') + '.', true);
       }).catch(function () { msg('That file could not be read.', false); });
   }
@@ -415,6 +530,7 @@
     var fresh = assessCard(w); old.parentNode.replaceChild(fresh, old);
   }
   function renderAssess() {
+    renderGate();
     var host = $('assessList'); host.textContent = '';
     var list = allWf().filter(included);
     if (!list.length) { host.appendChild(el('p', 'empty', 'No workflows selected. Choose some on the Workflows tab.')); refreshProgress(); return; }
@@ -571,7 +687,7 @@
     r.ranked.forEach(function (x) { var s = suitability(x.w); res.push([x.rank, x.w.id, x.w.name, round1(x.v), round1(x.f), round1(x.r), x.priority, quadById(x.quad).name, tierName(x.tier), s.pct == null ? '' : s.pct + '%']); });
     r.scored.filter(function (x) { return x.tier === 'prohibited'; }).forEach(function (x) { res.push(['', x.w.id, x.w.name, round1(x.v), round1(x.f), round1(x.r), '', 'Do not proceed', tierName(x.tier), '']); });
     var data = Workmatik.metaRows('Workmatik AI Workflow Assessment', 'workflow', FW.version, [['Assessor', m.who], ['Assessment date', m.date],
-      ['Workflows scored', r.scored.length], ['Strategy file loaded', state.strategy ? state.strategy.file : ''], ['Roles file loaded', state.roles ? 'Yes' : 'No'], ['Roles file organisation', state.roles ? state.roles.org : ''], ['Roles activities in scope', state.roles ? Object.keys(state.roles.scope).length : ''],
+      ['Workflows scored', r.scored.length], ['Strategy file loaded', state.strategy ? state.strategy.file : ''], ['Roles file loaded', state.roles ? 'Yes' : 'No'], ['Scored without roles check', state.bypass ? 'Yes' : 'No'], ['Roles file organisation', state.roles ? state.roles.org : ''], ['Roles activities in scope', state.roles ? Object.keys(state.roles.scope).length : ''],
       ['Note', 'Workflow IDs (WF##, own WFC##) and Activity IDs (A###, custom AC###) are stable. Other Workmatik tools match on these IDs.']]);
     var out = [['Summary', summary, [30, 60]], ['Workmatik data', data, [26, 90]], ['Scoring', scoring, [8, 40, 28, 9, 9, 6, 6, 6, 6, 6, 6, 6, 16, 50, 16]], ['Steps', steps, [11, 36, 8, 30, 50, 11, 9, 16, 9, 50]], ['Questions', qs, [6, 12, 28, 70, 30, 30, 30]], ['Results', res, [7, 8, 40, 8, 11, 8, 13, 16, 22, 12]]];
     if (state.roles) {
@@ -861,7 +977,7 @@
     }, { label: 'Drop a saved assessment, your Strategy file or your Roles file' });
     $('btnReset').addEventListener('click', function () {
       if (!window.confirm('Clear all selections, your own workflows, scores, tiers and notes?')) return;
-      state.off = {}; state.stepsOff = {}; state.custom = []; state.extra = {}; state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.scores = {}; state.tiers = {}; state.notes = {}; state.supports = {}; state.strategy = null; renderStrategyStatus(); $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
+      state.bypass = false; state.off = {}; state.stepsOff = {}; state.custom = []; state.extra = {}; state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.scores = {}; state.tiers = {}; state.notes = {}; state.supports = {}; state.strategy = null; renderStrategyStatus(); $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
     });
     ['thrValue', 'thrFeas'].forEach(function (id) { $(id).addEventListener('input', renderResults); });
     $('btnCmpAdd').addEventListener('click', function () { $('cmpFiles').click(); });

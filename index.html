@@ -58,7 +58,7 @@
       <br><br><strong>Full automation, Augmentation and Human only are set in the AI Roles Assessment, not here.</strong> Each step is an activity from that tool, and its classification is brought in from there so the two stay in sync. Until you load your Roles file, steps show the default classification. To change one, change it in the Roles Assessment, download the file, and load it back into this page.
     </div>
     <div class="roles-box">
-      <div><strong>Start from your AI Roles Assessment.</strong> Load the Excel file you exported from the AI Roles Assessment (or its Save file). Steps outside your roles scope are unticked, workflows with no step in scope are switched off, and any classification you overrode is used.</div>
+      <div><strong>Bring in your AI Roles Assessment.</strong> Choose and tag your workflows first, take your Workflow file to the AI Roles Assessment, then load its Excel file (or Save file) here. Steps outside your roles scope are unticked, any classification you overrode is used, and a check below shows where workflows and roles disagree. Scoring unlocks once they agree.</div>
       <div class="actions" style="margin-top:8px">
         <button class="btn" id="btnRoles" type="button">Load roles file (XLSX or JSON)</button>
         <input id="rolesInput" type="file" accept=".xlsx,.json" hidden>
@@ -90,6 +90,7 @@
       <button class="btn small" id="btnNone" type="button">Select none</button>
       <span class="hint" id="wfCount"></span>
     </div>
+    <div id="syncPanel" class="sync-panel" hidden></div>
     <div class="wf-grid" id="wfList" style="margin-top:12px"></div>
 
     <div class="addform">
@@ -126,10 +127,11 @@
     <div class="info-box">
       <strong>How to score.</strong> For each workflow, answer seven questions from 1 to 5 and choose the indicative EU AI Act tier. Score the workflow as it runs today. Value and feasibility are better when high. Risk is worse when high.
     </div>
-    <div class="progress" aria-live="polite"><div class="bar"><span id="progBar" style="width:0"></span></div><span id="progText" class="hint"></span></div>
+    <div id="gatePanel" class="gate-panel" hidden></div>
+    <div class="progress" id="progBarWrap" aria-live="polite"><div class="bar"><span id="progBar" style="width:0"></span></div><span id="progText" class="hint"></span></div>
     <div class="chips" id="assessChips" role="group" aria-label="Filter workflows"></div>
     <div id="assessList"></div>
-    <div class="actions">
+    <div class="actions" id="assessActions">
       <button class="btn primary" id="btnGoResults" type="button">See results</button>
     </div>
   </section>
