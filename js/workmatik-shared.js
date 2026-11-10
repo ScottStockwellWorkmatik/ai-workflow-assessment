@@ -119,8 +119,63 @@
     });
   }
 
+  // Drag and drop. onDrop(files) is called with an array of File objects dropped anywhere on the page.
+  // A full-page cue appears while a file is dragged over. Dropping outside a handler never opens the file in the browser.
+  function enableDrop(onDrop, opts) {
+    if (typeof document === 'undefined') return;
+    var label = (opts && opts.label) || 'Drop your Workmatik file to load it';
+    var depth = 0, cue = null;
+    function hasFiles(e) { var t = e.dataTransfer && e.dataTransfer.types; if (!t) return false; for (var i = 0; i < t.length; i++) if (t[i] === 'Files') return true; return false; }
+    function show() { if (!cue) { cue = document.createElement('div'); cue.className = 'wm-dropcue'; cue.setAttribute('aria-hidden', 'true'); cue.textContent = label; document.body.appendChild(cue); } }
+    function hide() { depth = 0; if (cue && cue.parentNode) cue.parentNode.removeChild(cue); cue = null; }
+    document.addEventListener('dragenter', function (e) { if (!hasFiles(e)) return; e.preventDefault(); depth++; show(); });
+    document.addEventListener('dragover', function (e) { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+    document.addEventListener('dragleave', function (e) { if (!hasFiles(e)) return; depth--; if (depth <= 0) hide(); });
+    document.addEventListener('drop', function (e) {
+      if (!hasFiles(e)) return; e.preventDefault(); hide();
+      var list = []; for (var i = 0; i < e.dataTransfer.files.length; i++) list.push(e.dataTransfer.files[i]);
+      if (list.length) onDrop(list);
+    });
+  }
+
+  // Work out what a file is from its contents, not its name. Resolves { file, kind, tool }.
+  // kind: 'json' | 'xlsx' | 'other'. tool: the Tool key in the Workmatik data sheet, or a guess from the sheet names for older files.
+  function identify(file) {
+    return new Promise(function (resolve) {
+      var base = { file: file, kind: 'other', tool: '' };
+      if (/\.json$/i.test(file.name)) { base.kind = 'json'; base.tool = 'roles'; return resolve(base); }
+      if (!/\.xlsx?$/i.test(file.name) || typeof XLSX === 'undefined') return resolve(base);
+      var rd = new FileReader();
+      rd.onerror = function () { resolve(base); };
+      rd.onload = function () {
+        try {
+          var wb = XLSX.read(rd.result, { type: 'array' }), names = wb.SheetNames; base.kind = 'xlsx';
+          var mw = wb.Sheets['Workmatik data'];
+          if (mw) XLSX.utils.sheet_to_json(mw, { header: 1 }).forEach(function (r) { if (r[0] === 'Tool key' && !base.tool) base.tool = String(r[1] || ''); });
+          if (!base.tool) {
+            if (names.indexOf('Measures') >= 0 && names.indexOf('Rows') >= 0) base.tool = 'strategy';
+            else if (names.indexOf('Selected activities') >= 0) base.tool = 'roles';
+            else if (names.indexOf('Scoring') >= 0) base.tool = 'scoring';
+          }
+          base.sheets = names;
+        } catch (e) {}
+        resolve(base);
+      };
+      rd.readAsArrayBuffer(file);
+    });
+  }
+
+  // Identify several files at once and return them in the order given by `order` (tool keys), unknown last.
+  function identifyAll(files, order) {
+    return Promise.all(files.map(identify)).then(function (items) {
+      function rank(it) { var i = order.indexOf(it.tool); return i < 0 ? order.length : i; }
+      return items.sort(function (a, b) { return rank(a) - rank(b); });
+    });
+  }
+
   root.Workmatik = {
     SCHEMA: SCHEMA, clean: clean, same: same, today: today, get: current, set: set, onChange: onChange,
-    fileName: fileName, metaRows: metaRows, fileContext: fileContext, check: check, prefillFrom: prefillFrom, requireOrg: requireOrg, renderOrgBlock: renderOrgBlock
+    fileName: fileName, metaRows: metaRows, fileContext: fileContext, check: check, prefillFrom: prefillFrom, requireOrg: requireOrg, renderOrgBlock: renderOrgBlock,
+    enableDrop: enableDrop, identify: identify, identifyAll: identifyAll
   };
 })(typeof window !== 'undefined' ? window : globalThis);

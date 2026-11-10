@@ -290,7 +290,7 @@
   function loadStrategyFile(file) {
     var msgs = $('strategyMessages'); msgs.textContent = '';
     function msg(t, ok) { msgs.appendChild(el('li', ok ? 'ok' : 'bad', t)); }
-    readFileBuffer(file).then(function (buf) {
+    return readFileBuffer(file).then(function (buf) {
       var p; try { p = parseStrategyXlsx(buf); } catch (e) { msg('That file could not be read as a Workmatik strategy file.', false); return; }
       if (!p.measures.length) { msg('That strategy file has no tracked priorities. Give at least one measure a priority number in the Toolkit, then download it again.', false); return; }
       var chk = Workmatik.check(p.kv);
@@ -342,10 +342,10 @@
     return { ok: true, n: n, withScope: withScope, offWf: offWf, unused: unused, custom: CUSTCAT.acts.length };
   }
   function loadRolesFile(file) {
-    var msgs = $('loadMessages'); msgs.textContent = '';
+    var msgs = $('loadMessages'); if (!dropBatch) msgs.textContent = '';
     function msg(t, ok) { msgs.appendChild(el('li', ok ? 'ok' : 'bad', t)); }
     var isX = /\.xlsx?$/i.test(file.name);
-    (isX ? readFileBuffer(file) : new Promise(function (res, rej) { var rd = new FileReader(); rd.onload = function () { res(rd.result); }; rd.onerror = rej; rd.readAsText(file); }))
+    return (isX ? readFileBuffer(file) : new Promise(function (res, rej) { var rd = new FileReader(); rd.onload = function () { res(rd.result); }; rd.onerror = rej; rd.readAsText(file); }))
       .then(function (data) {
         var parsed; try { parsed = isX ? parseRolesXlsx(data) : parseRolesJson(data); } catch (e) { msg('That file could not be read as an AI Roles Assessment file. Use the Excel export, or a Save file from the updated tool.', false); return; }
         var r = applyRoles(parsed, file.name);
@@ -684,11 +684,12 @@
     });
     return out;
   }
+  var dropBatch = false;
   function readFileBuffer(file) { return new Promise(function (resolve, reject) { var rd = new FileReader(); rd.onload = function () { resolve(rd.result); }; rd.onerror = reject; rd.readAsArrayBuffer(file); }); }
   function loadFile(file) {
-    var msgs = $('loadMessages'); msgs.textContent = '';
+    var msgs = $('loadMessages'); if (!dropBatch) msgs.textContent = '';
     function msg(t, ok) { msgs.appendChild(el('li', ok ? 'ok' : 'bad', t)); }
-    readFileBuffer(file).then(function (buf) {
+    return readFileBuffer(file).then(function (buf) {
       var d; try { d = parseWorkbook(buf); } catch (e) { msg('This file has no Scoring sheet, or could not be read as an assessment file, so it was not loaded.', false); return; }
       if (!d.kv['Organisation']) d.kv['Organisation'] = d.org;
       var chk = Workmatik.check(d.kv);
@@ -843,6 +844,21 @@
     $('btnDownloadToolkit').addEventListener('click', download);
     $('btnLoad').addEventListener('click', function () { $('fileInput').click(); });
     $('fileInput').addEventListener('change', function (e) { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
+    Workmatik.enableDrop(function (files) {
+      var msgs = $('loadMessages'); msgs.textContent = ''; dropBatch = true;
+      Workmatik.identifyAll(files, ['workflow', 'scoring', 'strategy', 'roles']).then(function (items) {
+        var chain = Promise.resolve();
+        items.forEach(function (it) {
+          chain = chain.then(function () {
+            if (it.tool === 'workflow' || it.tool === 'scoring') return loadFile(it.file);
+            if (it.tool === 'strategy') return loadStrategyFile(it.file);
+            if (it.tool === 'roles') return loadRolesFile(it.file);
+            msgs.appendChild(el('li', 'bad', it.file.name + ' was not recognised. Drop a saved Workflow Assessment, a Strategy file from the Toolkit, or an AI Roles Assessment file.'));
+          });
+        });
+        chain.then(function () { dropBatch = false; }, function () { dropBatch = false; });
+      });
+    }, { label: 'Drop a saved assessment, your Strategy file or your Roles file' });
     $('btnReset').addEventListener('click', function () {
       if (!window.confirm('Clear all selections, your own workflows, scores, tiers and notes?')) return;
       state.off = {}; state.stepsOff = {}; state.custom = []; state.extra = {}; state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.scores = {}; state.tiers = {}; state.notes = {}; state.supports = {}; state.strategy = null; renderStrategyStatus(); $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
