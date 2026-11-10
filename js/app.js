@@ -387,40 +387,29 @@
 
 
   // ---------- check priorities before saving
-  function closeModal() { var m = document.getElementById('wmModal'); if (m) m.parentNode.removeChild(m); }
   function checkPriorities(proceed, opts) {
     opts = opts || {};
     if (!opts.carryOn && !Workmatik.requireOrg()) return;
     var a = align(), noStrategy = !(state.strategy && state.strategy.measures.length);
     var untagged = noStrategy ? a.sel : a.needTag;
     if (!untagged.length) { proceed(); return; }
-    closeModal();
-    var ov = el('div', 'wm-modal'); ov.id = 'wmModal';
-    var box = el('div', 'wm-modal-box'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'wmModalTitle');
-    var h = el('h3', '', 'Some workflows are not linked to a priority'); h.id = 'wmModalTitle'; box.appendChild(h);
-    if (noStrategy) {
-      box.appendChild(el('p', '', 'No Strategy file is loaded, so your ' + plural(untagged.length, 'selected workflow', 'selected workflows') + ' cannot be linked to a priority. The Roadmap will show them as not linked to your purpose.'));
-    } else {
-      box.appendChild(el('p', '', plural(untagged.length, 'selected workflow is', 'selected workflows are') + ' not tagged to any of your priorities:'));
-      var ul = el('ul', 'sync-list');
-      untagged.slice(0, 8).forEach(function (w) { ul.appendChild(el('li', '', w.name)); });
-      if (untagged.length > 8) ul.appendChild(el('li', '', 'and ' + (untagged.length - 8) + ' more'));
-      box.appendChild(ul);
+    var text, list = null;
+    if (noStrategy) text = 'No Strategy file is loaded, so your ' + plural(untagged.length, 'selected workflow', 'selected workflows') + ' cannot be linked to a priority. The Roadmap will show them as not linked to your purpose.';
+    else {
+      text = plural(untagged.length, 'selected workflow is', 'selected workflows are') + ' not tagged to any of your priorities:';
+      list = untagged.slice(0, 8).map(function (w) { return w.name; }); if (untagged.length > 8) list.push('and ' + (untagged.length - 8) + ' more');
     }
-    box.appendChild(el('p', 'hint', opts.carryOn ? 'Add priorities now, or carry on without them. You can come back to this tab and add them at any time.' : 'Add priorities now, or save without them. You can add them later and save again.'));
-    var act = el('div', 'actions');
-    var fix = el('button', 'btn primary', noStrategy ? 'Load my strategy file' : 'Add priorities now'); fix.type = 'button';
-    fix.addEventListener('click', function () {
-      closeModal(); showTab('workflows');
+    Workmatik.dialog({
+      title: 'Some workflows are not linked to a priority', text: text, list: list, dismiss: 'cancel',
+      hint: opts.carryOn ? 'Add priorities now, or carry on without them. You can come back to this tab and add them at any time.' : 'Add priorities now, or save without them. You can add them later and save again.',
+      actions: [{ id: 'fix', label: noStrategy ? 'Load my strategy file' : 'Add priorities now', primary: true }, { id: 'go', label: opts.carryOn ? 'Continue without priorities' : 'Save without priorities' }]
+    }).then(function (id) {
+      if (id === 'go') { proceed(); return; }
+      if (id !== 'fix') return;
+      showTab('workflows');
       if (noStrategy) { $('btnStrategy').scrollIntoView({ block: 'center' }); $('btnStrategy').focus(); }
       else { var card = document.getElementById('wf-' + untagged[0].id); if (card) { card.scrollIntoView({ block: 'center' }); card.classList.add('flash'); setTimeout(function () { card.classList.remove('flash'); }, 2500); } }
     });
-    var go = el('button', 'btn', opts.carryOn ? 'Continue without priorities' : 'Save without priorities'); go.type = 'button';
-    go.addEventListener('click', function () { closeModal(); proceed(); });
-    act.appendChild(fix); act.appendChild(go); box.appendChild(act);
-    ov.appendChild(box); document.body.appendChild(ov);
-    ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
-    fix.focus();
   }
 
   // ---------- strategy import
@@ -452,12 +441,14 @@
       var p; try { p = parseStrategyXlsx(buf); } catch (e) { msg('That file could not be read as a Workmatik strategy file.', false); return; }
       if (!p.measures.length) { msg('That strategy file has no tracked priorities. Give at least one measure a priority number in the Toolkit, then download it again.', false); return; }
       var chk = Workmatik.check(p.kv);
-      if (!chk.ok && !window.confirm(chk.message + ' Load it anyway?')) { msg('Not loaded: the file is for a different organisation or business unit.', false); return; }
-      Workmatik.prefillFrom(p.kv);
-      state.strategy = { file: file.name, measures: p.measures };
-      var keep = {}; p.measures.forEach(function (m) { keep[m.id] = 1; });
-      Object.keys(state.supports).forEach(function (id) { state.supports[id] = state.supports[id].filter(function (m) { return keep[m]; }); if (!state.supports[id].length) delete state.supports[id]; });
-      renderWorkflows(); renderStrategyStatus(); msg('Loaded ' + p.measures.length + ' tracked priorities from ' + file.name + '.', true);
+      return Workmatik.confirmLoad(chk).then(function (go) {
+        if (!go) { msg('Not loaded: the file is for a different organisation or business unit.', false); return; }
+        Workmatik.prefillFrom(p.kv);
+        state.strategy = { file: file.name, measures: p.measures };
+        var keep = {}; p.measures.forEach(function (m) { keep[m.id] = 1; });
+        Object.keys(state.supports).forEach(function (id) { state.supports[id] = state.supports[id].filter(function (m) { return keep[m]; }); if (!state.supports[id].length) delete state.supports[id]; });
+        renderWorkflows(); renderStrategyStatus(); msg('Loaded ' + p.measures.length + ' tracked priorities from ' + file.name + '.', true);
+      });
     }).catch(function () { msg('That file could not be read.', false); });
   }
 
@@ -854,12 +845,14 @@
       var d; try { d = parseWorkbook(buf); } catch (e) { msg('This file has no Scoring sheet, or could not be read as an assessment file, so it was not loaded.', false); return; }
       if (!d.kv['Organisation']) d.kv['Organisation'] = d.org;
       var chk = Workmatik.check(d.kv);
-      if (!chk.ok && !window.confirm(chk.message + ' Load it anyway? The page will switch to the file\'s organisation.')) { msg('Not loaded: the file is for a different organisation or business unit.', false); return; }
-      Workmatik.set({ org: d.kv['Organisation'] || d.org || '', unit: d.kv['Business unit'] || '' });
-      state.off = d.off; state.stepsOff = d.stepsOff; state.custom = d.custom; state.extra = d.extra; state.roles = d.roles; state.scores = d.scores; state.tiers = d.tiers; state.notes = d.notes; state.supports = d.supports;
-      $('assessor').value = d.who; $('assessDate').value = d.date;
-      if (d.tv) $('thrValue').value = d.tv; if (d.tf) $('thrFeas').value = d.tf;
-      renderWorkflows(); renderAssess(); msg('Loaded ' + d.n + ' scored workflow' + (d.n === 1 ? '' : 's') + ' and ' + d.custom.length + ' of your own from ' + file.name + '.', true);
+      return Workmatik.confirmLoad(chk, 'The page will switch to the file\'s organisation.').then(function (go) {
+        if (!go) { msg('Not loaded: the file is for a different organisation or business unit.', false); return; }
+        Workmatik.set({ org: d.kv['Organisation'] || d.org || '', unit: d.kv['Business unit'] || '' });
+        state.off = d.off; state.stepsOff = d.stepsOff; state.custom = d.custom; state.extra = d.extra; state.roles = d.roles; state.scores = d.scores; state.tiers = d.tiers; state.notes = d.notes; state.supports = d.supports;
+        $('assessor').value = d.who; $('assessDate').value = d.date;
+        if (d.tv) $('thrValue').value = d.tv; if (d.tf) $('thrFeas').value = d.tf;
+        renderWorkflows(); renderAssess(); msg('Loaded ' + d.n + ' scored workflow' + (d.n === 1 ? '' : 's') + ' and ' + d.custom.length + ' of your own from ' + file.name + '.', true);
+      });
     }).catch(function () { msg('That file could not be read as an assessment file.', false); });
   }
 
@@ -1021,9 +1014,11 @@
       });
     }, { label: 'Drop a saved assessment, your Strategy file or your Roles file' });
     $('btnReset').addEventListener('click', function () {
-      if (!window.confirm('Clear all selections, your own workflows, scores, tiers and notes?')) return;
-      state.bypass = false; state.off = {}; state.stepsOff = {}; state.custom = []; state.extra = {}; state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.scores = {}; state.tiers = {}; state.notes = {}; state.supports = {}; state.strategy = null; renderStrategyStatus(); $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
+      Workmatik.confirm('Clear all selections, your own workflows, scores, tiers and notes?', { title: 'Clear everything?', ok: 'Clear everything', danger: true }).then(function (ok) { if (ok) resetAll(); });
     });
+    function resetAll() {
+      state.bypass = false; state.off = {}; state.stepsOff = {}; state.custom = []; state.extra = {}; state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.scores = {}; state.tiers = {}; state.notes = {}; state.supports = {}; state.strategy = null; renderStrategyStatus(); $('loadMessages').textContent = ''; renderWorkflows(); renderAssess();
+    }
     ['thrValue', 'thrFeas'].forEach(function (id) { $(id).addEventListener('input', renderResults); });
     $('btnCmpAdd').addEventListener('click', function () { $('cmpFiles').click(); });
     $('cmpFiles').addEventListener('change', function (e) { if (e.target.files.length) addCmpFiles(e.target.files); e.target.value = ''; });

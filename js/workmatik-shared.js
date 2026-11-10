@@ -74,7 +74,7 @@
   // Call before any export or save. Stops with a clear message if the organisation is blank.
   function requireOrg() {
     if (current().org) return true;
-    alert('Enter the organisation at the top of the page first, so the file is named and checked correctly.');
+    notify('Enter the organisation at the top of the page first, so the file is named and checked correctly.', { title: 'Organisation needed' });
     var i = document.querySelector('.org-block input');
     if (i) i.focus();
     return false;
@@ -176,6 +176,52 @@
     });
   }
 
+
+  // Dialogs. One look for every pop-up in every tool. dialog() resolves with the id of the button chosen.
+  var dlgSeq = 0;
+  function dialog(o) {
+    return new Promise(function (resolve) {
+      var prev = document.activeElement, id = 'wmDlg' + (++dlgSeq);
+      var ov = el('div', 'wm-modal'), box = el('div', 'wm-modal-box');
+      box.setAttribute('role', o.alert ? 'alertdialog' : 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', id + 't');
+      var h = el('h3', '', o.title || 'Please note'); h.id = id + 't'; box.appendChild(h);
+      [].concat(o.text || []).forEach(function (t) { box.appendChild(el('p', 'wm-modal-text', t)); });
+      if (o.list && o.list.length) { var ul = el('ul', 'wm-modal-list'); o.list.forEach(function (t) { ul.appendChild(el('li', '', t)); }); box.appendChild(ul); }
+      if (o.hint) box.appendChild(el('p', 'wm-modal-hint', o.hint));
+      var act = el('div', 'wm-modal-actions'), btns = [], first = null;
+      (o.actions || [{ id: 'ok', label: 'OK', primary: true }]).forEach(function (a) {
+        var b = el('button', 'wm-btn' + (a.primary ? ' primary' : '') + (a.danger ? ' danger' : ''), a.label); b.type = 'button'; b.setAttribute('data-id', a.id);
+        b.addEventListener('click', function () { close(a.id); }); act.appendChild(b); btns.push(b); if (a.primary && !first) first = b;
+      });
+      box.appendChild(act); ov.appendChild(box);
+      function close(v) { document.removeEventListener('keydown', key, true); if (ov.parentNode) ov.parentNode.removeChild(ov); if (prev && prev.focus) { try { prev.focus(); } catch (e) {} } resolve(v); }
+      function key(e) {
+        var all = document.querySelectorAll('.wm-modal'); if (all[all.length - 1] !== ov) return;
+        if (e.key === 'Escape') { e.preventDefault(); close(o.dismiss || (btns[0] && btns[0].getAttribute('data-id'))); }
+        else if (e.key === 'Tab' && btns.length) {
+          var i = btns.indexOf(document.activeElement); e.preventDefault();
+          btns[(i + (e.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
+        }
+      }
+      document.addEventListener('keydown', key, true);
+      document.body.appendChild(ov); (first || btns[0]).focus();
+    });
+  }
+  function confirmDialog(text, o) {
+    o = o || {};
+    return dialog({ title: o.title || 'Please confirm', text: text, list: o.list, hint: o.hint, dismiss: 'cancel',
+      actions: [{ id: 'cancel', label: o.cancel || 'Cancel' }, { id: 'ok', label: o.ok || 'Continue', primary: true, danger: !!o.danger }] }).then(function (id) { return id === 'ok'; });
+  }
+  function notify(text, o) {
+    o = o || {};
+    return dialog({ title: o.title || 'Please note', text: text, list: o.list, hint: o.hint, alert: true, dismiss: 'ok', actions: [{ id: 'ok', label: o.ok || 'OK', primary: true }] });
+  }
+  // A file for a different organisation or business unit: resolves true when the person chooses to load it anyway.
+  function confirmLoad(chk, extra) {
+    if (chk.ok) return Promise.resolve(true);
+    return confirmDialog(chk.message + (extra ? ' ' + extra : ''), { title: 'This file is for a different organisation', ok: 'Load it anyway', cancel: 'Do not load' });
+  }
+
   // Hand-off between Workmatik tabs. All the tools share one web address, so a tool opened from another can ask the tab that
   // opened it for the organisation details. The details pass tab to tab in memory only: nothing is stored and nothing goes in the URL.
   var REQ = 'workmatik-context-request', RES = 'workmatik-context';
@@ -217,6 +263,7 @@
   root.Workmatik = {
     SCHEMA: SCHEMA, clean: clean, same: same, today: today, get: current, set: set, onChange: onChange,
     fileName: fileName, metaRows: metaRows, fileContext: fileContext, check: check, prefillFrom: prefillFrom, requireOrg: requireOrg, renderOrgBlock: renderOrgBlock,
-    enableDrop: enableDrop, identify: identify, identifyAll: identifyAll
+    enableDrop: enableDrop, identify: identify, identifyAll: identifyAll,
+    dialog: dialog, confirm: confirmDialog, notify: notify, confirmLoad: confirmLoad
   };
 })(typeof window !== 'undefined' ? window : globalThis);
