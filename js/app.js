@@ -388,8 +388,9 @@
 
   // ---------- check priorities before saving
   function closeModal() { var m = document.getElementById('wmModal'); if (m) m.parentNode.removeChild(m); }
-  function checkPriorities(proceed) {
-    if (!Workmatik.requireOrg()) return;
+  function checkPriorities(proceed, opts) {
+    opts = opts || {};
+    if (!opts.carryOn && !Workmatik.requireOrg()) return;
     var a = align(), noStrategy = !(state.strategy && state.strategy.measures.length);
     var untagged = noStrategy ? a.sel : a.needTag;
     if (!untagged.length) { proceed(); return; }
@@ -406,7 +407,7 @@
       if (untagged.length > 8) ul.appendChild(el('li', '', 'and ' + (untagged.length - 8) + ' more'));
       box.appendChild(ul);
     }
-    box.appendChild(el('p', 'hint', 'Add priorities now, or save without them. You can add them later and save again.'));
+    box.appendChild(el('p', 'hint', opts.carryOn ? 'Add priorities now, or carry on without them. You can come back to this tab and add them at any time.' : 'Add priorities now, or save without them. You can add them later and save again.'));
     var act = el('div', 'actions');
     var fix = el('button', 'btn primary', noStrategy ? 'Load my strategy file' : 'Add priorities now'); fix.type = 'button';
     fix.addEventListener('click', function () {
@@ -414,7 +415,7 @@
       if (noStrategy) { $('btnStrategy').scrollIntoView({ block: 'center' }); $('btnStrategy').focus(); }
       else { var card = document.getElementById('wf-' + untagged[0].id); if (card) { card.scrollIntoView({ block: 'center' }); card.classList.add('flash'); setTimeout(function () { card.classList.remove('flash'); }, 2500); } }
     });
-    var go = el('button', 'btn', 'Save without priorities'); go.type = 'button';
+    var go = el('button', 'btn', opts.carryOn ? 'Continue without priorities' : 'Save without priorities'); go.type = 'button';
     go.addEventListener('click', function () { closeModal(); proceed(); });
     act.appendChild(fix); act.appendChild(go); box.appendChild(act);
     ov.appendChild(box); document.body.appendChild(ov);
@@ -998,7 +999,7 @@
       state.roles = null; CUSTCAT = { roles: [], acts: [] }; rebuildCat(); state.stepsOff = {}; state.off = {}; $('loadMessages').textContent = '';
       renderWorkflows(); renderAssess();
     });
-    $('btnGoAssess').addEventListener('click', function () { showTab('assess'); });
+    $('btnGoAssess').addEventListener('click', function () { checkPriorities(function () { showTab('assess'); }, { carryOn: true }); });
     $('btnGoResults').addEventListener('click', function () { showTab('results'); });
     $('btnDownload').addEventListener('click', function () { checkPriorities(download); });
     $('btnDownloadToolkit').addEventListener('click', function () { checkPriorities(download); });
