@@ -1,6 +1,6 @@
 /* Workmatik shared helpers, schema workmatik-shared-ids-2. See docs/shared-contract.md.
    Plain ES5 so every app can load it with one script tag. Nothing is sent anywhere;
-   the organisation block is remembered in this browser only. */
+   the organisation block is held in memory only and is cleared when the page closes. */
 (function (root) {
   'use strict';
 
@@ -18,20 +18,13 @@
   }
   function same(a, b) { return clean(a, 80).toLowerCase() === clean(b, 80).toLowerCase(); }
 
-  function get() {
-    try {
-      var v = JSON.parse(localStorage.getItem(KEY) || '{}');
-      if (v && typeof v === 'object') return { org: String(v.org || ''), unit: String(v.unit || ''), by: String(v.by || '') };
-    } catch (e) { /* storage blocked or corrupt: fall through */ }
-    return { org: '', unit: '', by: '' };
-  }
-  var memory = null;
-  function current() { return memory || (memory = get()); }
+  // Nothing is stored in the browser. Any value saved by an earlier version is removed.
+  try { localStorage.removeItem(KEY); } catch (e) { /* storage blocked */ }
+  var memory = { org: '', unit: '', by: '' };
+  function current() { return memory; }
   function set(patch) {
-    var c = current(), k;
+    var c = memory, k;
     for (k in patch) { if (Object.prototype.hasOwnProperty.call(patch, k)) c[k] = String(patch[k] == null ? '' : patch[k]); }
-    memory = c;
-    try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) { /* keep in memory only */ }
     listeners.forEach(function (fn) { try { fn(c); } catch (e) { /* ignore listener errors */ } });
     return c;
   }
@@ -116,6 +109,14 @@
     }
     onChange(sync);
     sync();
+  }
+
+  // Everything on the page is lost when it closes, so ask before leaving once work has been started.
+  if (root.addEventListener) {
+    root.addEventListener('beforeunload', function (e) {
+      var c = memory;
+      if (c.org || c.unit || c.by) { e.preventDefault(); e.returnValue = ''; }
+    });
   }
 
   root.Workmatik = {
