@@ -267,6 +267,7 @@
 
 
   // ---------- alignment between workflows and the Roles file (the checkpoint before scoring)
+  var ROLES_URL = 'https://scottstockwellworkmatik.github.io/ai-roles-assessment/';
   function align() {
     var sel = allWf().filter(included), used = {}, out = [], needTag = [];
     sel.forEach(function (w) {
@@ -373,7 +374,13 @@
     if (a.rolesLoaded) check(!a.out.length, a.out.length ? plural(a.out.length, 'ticked step is', 'ticked steps are') + ' outside your roles scope (Workflows tab shows how to fix this)' : 'every ticked step is in your roles scope');
     host.appendChild(ul);
     var act = el('div', 'actions');
-    var g = el('button', 'btn primary', 'Go to Workflows'); g.type = 'button'; g.addEventListener('click', function () { showTab('workflows'); });
+    var ra = el('a', 'btn primary', 'Open the AI Roles Assessment'); ra.href = ROLES_URL; ra.target = '_blank'; ra.rel = 'noopener';
+    var lr = el('button', 'btn', a.rolesLoaded ? 'Load an updated Roles file' : 'I have my Roles file: load it here'); lr.type = 'button'; lr.addEventListener('click', function () { $('rolesInput').click(); });
+    act.appendChild(ra); act.appendChild(lr);
+    host.appendChild(act);
+    host.appendChild(el('p', 'hint', 'The Roles Assessment opens in a new tab so your work here stays put. Nothing is kept in the browser, so keep this tab open. Download your Workflow file first and load it in the Roles Assessment to tick the activities your workflows need. You can also drop the Roles file anywhere on this page.'));
+    act = el('div', 'actions');
+    var g = el('button', 'btn', 'Go to Workflows'); g.type = 'button'; g.addEventListener('click', function () { showTab('workflows'); });
     var s = el('button', 'lnk', 'Score without the roles check'); s.type = 'button'; s.addEventListener('click', function () { state.bypass = true; renderAssess(); });
     act.appendChild(g); act.appendChild(s); host.appendChild(act);
   }
