@@ -385,6 +385,43 @@
     act.appendChild(g); act.appendChild(s); host.appendChild(act);
   }
 
+
+  // ---------- check priorities before saving
+  function closeModal() { var m = document.getElementById('wmModal'); if (m) m.parentNode.removeChild(m); }
+  function checkPriorities(proceed) {
+    if (!Workmatik.requireOrg()) return;
+    var a = align(), noStrategy = !(state.strategy && state.strategy.measures.length);
+    var untagged = noStrategy ? a.sel : a.needTag;
+    if (!untagged.length) { proceed(); return; }
+    closeModal();
+    var ov = el('div', 'wm-modal'); ov.id = 'wmModal';
+    var box = el('div', 'wm-modal-box'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'wmModalTitle');
+    var h = el('h3', '', 'Some workflows are not linked to a priority'); h.id = 'wmModalTitle'; box.appendChild(h);
+    if (noStrategy) {
+      box.appendChild(el('p', '', 'No Strategy file is loaded, so your ' + plural(untagged.length, 'selected workflow', 'selected workflows') + ' cannot be linked to a priority. The Roadmap will show them as not linked to your purpose.'));
+    } else {
+      box.appendChild(el('p', '', plural(untagged.length, 'selected workflow is', 'selected workflows are') + ' not tagged to any of your priorities:'));
+      var ul = el('ul', 'sync-list');
+      untagged.slice(0, 8).forEach(function (w) { ul.appendChild(el('li', '', w.name)); });
+      if (untagged.length > 8) ul.appendChild(el('li', '', 'and ' + (untagged.length - 8) + ' more'));
+      box.appendChild(ul);
+    }
+    box.appendChild(el('p', 'hint', 'Add priorities now, or save without them. You can add them later and save again.'));
+    var act = el('div', 'actions');
+    var fix = el('button', 'btn primary', noStrategy ? 'Load my strategy file' : 'Add priorities now'); fix.type = 'button';
+    fix.addEventListener('click', function () {
+      closeModal(); showTab('workflows');
+      if (noStrategy) { $('btnStrategy').scrollIntoView({ block: 'center' }); $('btnStrategy').focus(); }
+      else { var card = document.getElementById('wf-' + untagged[0].id); if (card) { card.scrollIntoView({ block: 'center' }); card.classList.add('flash'); setTimeout(function () { card.classList.remove('flash'); }, 2500); } }
+    });
+    var go = el('button', 'btn', 'Save without priorities'); go.type = 'button';
+    go.addEventListener('click', function () { closeModal(); proceed(); });
+    act.appendChild(fix); act.appendChild(go); box.appendChild(act);
+    ov.appendChild(box); document.body.appendChild(ov);
+    ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+    fix.focus();
+  }
+
   // ---------- strategy import
   function parseStrategyXlsx(buf) {
     var wb = XLSX.read(buf, { type: 'array' }), W = wb.Sheets;
@@ -963,8 +1000,8 @@
     });
     $('btnGoAssess').addEventListener('click', function () { showTab('assess'); });
     $('btnGoResults').addEventListener('click', function () { showTab('results'); });
-    $('btnDownload').addEventListener('click', download);
-    $('btnDownloadToolkit').addEventListener('click', download);
+    $('btnDownload').addEventListener('click', function () { checkPriorities(download); });
+    $('btnDownloadToolkit').addEventListener('click', function () { checkPriorities(download); });
     $('btnLoad').addEventListener('click', function () { $('fileInput').click(); });
     $('fileInput').addEventListener('change', function (e) { if (e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
     Workmatik.enableDrop(function (files) {

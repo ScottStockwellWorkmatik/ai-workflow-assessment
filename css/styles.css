@@ -337,3 +337,9 @@ td.chg.down-bad, .ph.down-bad { color: #B42318; }
 .gate-list li { padding: 6px 10px; border-radius: 6px; margin: 4px 0; font-size: 14px; }
 .gate-list li.ok { background: #E9F7EF; }
 .gate-list li.bad { background: #FFF3EC; }
+
+.wm-modal { position: fixed; inset: 0; z-index: 9000; background: rgba(0, 38, 77, .55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.wm-modal-box { background: #fff; border-radius: 12px; max-width: 520px; width: 100%; padding: 20px 22px; box-shadow: 0 10px 40px rgba(0,0,0,.3); max-height: 90vh; overflow: auto; }
+.wm-modal-box h3 { margin: 0 0 8px; font-size: 18px; color: var(--navy); }
+.wf.flash { animation: wfflash 2.5s ease-out; }
+@keyframes wfflash { 0%, 60% { box-shadow: 0 0 0 4px #F25D27; } 100% { box-shadow: 0 0 0 0 transparent; } }
