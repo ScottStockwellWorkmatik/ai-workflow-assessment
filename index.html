@@ -57,18 +57,8 @@
       <strong>Pick the workflows to assess.</strong> The starter list has 31 workflows, built from activities in the AI Roles Assessment and grouped like its roles. Untick a workflow you do not run or a step that is not part of it. You can add steps to any workflow, or add your own workflow.
       <br><br><strong>Full automation, Augmentation and Human only are set in the AI Roles Assessment, not here.</strong> Each step is an activity from that tool, and its classification is brought in from there so the two stay in sync. Until you load your Roles file, steps show the default classification. To change one, change it in the Roles Assessment, download the file, and load it back into this page.
     </div>
-    <div class="roles-box">
-      <div><strong>Bring in your AI Roles Assessment.</strong> Choose and tag your workflows first, take your Workflow file to the AI Roles Assessment, then load its Excel file (or Save file) here. Steps outside your roles scope are unticked, any classification you overrode is used, and a check below shows where workflows and roles disagree. Scoring unlocks once they agree.</div>
-      <div class="actions" style="margin-top:8px">
-        <button class="btn" id="btnRoles" type="button">Load roles file (XLSX or JSON)</button>
-        <a class="btn" href="https://scottstockwellworkmatik.github.io/ai-roles-assessment/" target="_blank" rel="noopener">Open the AI Roles Assessment</a>
-        <input id="rolesInput" type="file" accept=".xlsx,.json" hidden>
-        <button class="btn small" id="btnRolesClear" type="button" hidden>Remove roles scope</button>
-        <span class="hint" id="rolesStatus" aria-live="polite"></span>
-      </div>
-    </div>
     <div class="roles-box strategy-box">
-      <div><strong>Link to your strategy (optional).</strong> Load the Strategy file you downloaded from the Workmatik AI Toolkit. Each workflow then shows your tracked priorities, so you can tick the ones it supports. This is how the Toolkit later traces workflows back to your strategy.</div>
+      <div><strong>Link to your strategy.</strong> Load the Strategy file you downloaded from the Workmatik AI Toolkit. Each workflow then shows your tracked priorities, so you can tick the ones it supports. This is how the Toolkit later traces workflows back to your strategy.</div>
       <div class="actions" style="margin-top:8px">
         <button class="btn" id="btnStrategy" type="button">Load strategy file (XLSX)</button>
         <input id="strategyInput" type="file" accept=".xlsx" hidden>
@@ -76,6 +66,16 @@
         <span class="hint" id="strategyStatus" aria-live="polite"></span>
       </div>
       <ul id="strategyMessages" class="messages" aria-live="polite"></ul>
+    </div>
+    <div class="roles-box">
+      <div><strong>Bring in your AI Roles Assessment.</strong> Choose and tag your workflows first, take your Workflow file to the AI Roles Assessment, then load its Excel file (or Save file) here. Steps outside your roles scope are unticked, any classification you overrode is used, and a check below shows where workflows and roles disagree. Scoring unlocks once they agree.</div>
+      <div class="actions" style="margin-top:8px">
+        <button class="btn" id="btnRoles" type="button">Load roles file (XLSX or JSON)</button>
+        <a class="btn" href="https://scottstockwellworkmatik.github.io/ai-roles-assessment/" target="_blank">Open the AI Roles Assessment</a>
+        <input id="rolesInput" type="file" accept=".xlsx,.json" hidden>
+        <button class="btn small" id="btnRolesClear" type="button" hidden>Remove roles scope</button>
+        <span class="hint" id="rolesStatus" aria-live="polite"></span>
+      </div>
     </div>
     <form class="meta-form" id="metaForm" onsubmit="return false">
       <input type="hidden" id="orgName">

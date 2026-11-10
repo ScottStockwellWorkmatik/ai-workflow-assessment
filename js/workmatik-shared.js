@@ -83,6 +83,8 @@
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
   // Draws the organisation block into host. Safe to call once per page.
+  var notes = [];
+  function showNote(text) { notes.forEach(function (n) { n.textContent = text; n.hidden = !text; }); }
   function renderOrgBlock(host) {
     if (!host) return;
     var c = current();
@@ -100,6 +102,7 @@
     });
     var chip = el('p', 'org-chip'); chip.setAttribute('aria-live', 'polite');
     wrap.appendChild(chip);
+    var note = el('p', 'org-note'); note.setAttribute('aria-live', 'polite'); note.hidden = true; wrap.appendChild(note); notes.push(note);
     host.appendChild(wrap);
     function sync() {
       var cur = current();
@@ -172,6 +175,44 @@
       return items.sort(function (a, b) { return rank(a) - rank(b); });
     });
   }
+
+  // Hand-off between Workmatik tabs. All the tools share one web address, so a tool opened from another can ask the tab that
+  // opened it for the organisation details. The details pass tab to tab in memory only: nothing is stored and nothing goes in the URL.
+  var REQ = 'workmatik-context-request', RES = 'workmatik-context';
+  function toolName() {
+    var t = (typeof document !== 'undefined' && document.title) || 'the previous tool';
+    return t.replace(/\s*[|–—-]\s*Workmatik.*$/i, '').replace(/^Workmatik\s*/i, '') || 'the previous tool';
+  }
+  function tidy(v, n) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n); }
+  function initHandoff() {
+    if (typeof window === 'undefined' || !window.addEventListener) return;
+    window.addEventListener('message', function (e) {
+      if (e.origin !== window.location.origin || !e.data || typeof e.data !== 'object') return;
+      if (e.data.type === REQ && e.source && e.source !== window) {
+        var c = current();
+        if (c.org || c.unit || c.by) e.source.postMessage({ type: RES, org: c.org, unit: c.unit, by: c.by, from: toolName() }, e.origin);
+      } else if (e.data.type === RES && window.opener && e.source === window.opener) {
+        var cur = current(), patch = {};
+        ['org', 'unit', 'by'].forEach(function (k) { if (!cur[k] && typeof e.data[k] === 'string') patch[k] = tidy(e.data[k], 80); });
+        if (Object.keys(patch).length) {
+          set(patch);
+          showNote('Organisation details brought over from ' + tidy(e.data.from || 'the previous tool', 60) + '. Change or clear them if they are not right.');
+        }
+      }
+    });
+    // Links to another Workmatik tool that open a new tab keep a line back to this tab, so the details can follow.
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[target="_blank"]') : null;
+      if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      var u; try { u = new URL(a.href, window.location.href); } catch (err) { return; }
+      if (u.origin !== window.location.origin) return;
+      e.preventDefault(); window.open(u.href, '_blank');
+    }, true);
+    if (window.opener && window.opener !== window) {
+      try { window.opener.postMessage({ type: REQ }, window.location.origin); } catch (err) {}
+    }
+  }
+  initHandoff();
 
   root.Workmatik = {
     SCHEMA: SCHEMA, clean: clean, same: same, today: today, get: current, set: set, onChange: onChange,
