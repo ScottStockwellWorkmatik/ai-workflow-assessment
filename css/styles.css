@@ -320,3 +320,8 @@ td.chg.down-bad, .ph.down-bad { color: #B42318; }
 .addstep-row select:focus,.addstep-row input:focus,.addform select:focus{outline:2px solid #F25D27;outline-offset:1px}
 .lnk{background:none;border:none;color:#024873;text-decoration:underline;font:inherit;font-size:.8rem;cursor:pointer;margin-left:8px}
 .addform select{width:100%;padding:8px;border:1.5px solid #D9D9D9;border-radius:6px;font:inherit;background:#fff}
+
+.strategy-box{margin-top:-4px}
+.wf-supports{margin:8px 0 2px;padding:8px 10px;background:#EAF9FF;border-radius:8px;font-size:14px}
+.wf-supports .lbl{font-weight:600;color:var(--navy);margin-right:8px}
+.wf-supports label{display:inline-flex;gap:6px;align-items:center;margin:2px 14px 2px 0;cursor:pointer}

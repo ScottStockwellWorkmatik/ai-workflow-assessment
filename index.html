@@ -21,7 +21,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="AI Workflows">
 <link rel="manifest" href="site.webmanifest">
-<link rel="stylesheet" href="css/styles.css?v=2">
+<link rel="stylesheet" href="css/styles.css?v=3">
+<link rel="stylesheet" href="css/workmatik-shared.css?v=1">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -36,6 +37,7 @@
     <p class="privacy-chip" title="No data is sent to a server or stored by this page">Runs in your browser. Nothing is uploaded or stored.</p>
   </div>
 </header>
+<div id="orgBlock"></div>
 
 <main id="main" class="wrap">
   <p id="loadError" class="error" role="alert" hidden></p>
@@ -63,10 +65,18 @@
         <span class="hint" id="rolesStatus" aria-live="polite"></span>
       </div>
     </div>
+    <div class="roles-box strategy-box">
+      <div><strong>Link to your strategy (optional).</strong> Load the Strategy file you downloaded from the Workmatik AI Toolkit. Each workflow then shows your tracked priorities, so you can tick the ones it supports. This is how the Toolkit later traces workflows back to your strategy.</div>
+      <div class="actions" style="margin-top:8px">
+        <button class="btn" id="btnStrategy" type="button">Load strategy file (XLSX)</button>
+        <input id="strategyInput" type="file" accept=".xlsx" hidden>
+        <button class="btn small" id="btnStrategyClear" type="button" hidden>Remove strategy</button>
+        <span class="hint" id="strategyStatus" aria-live="polite"></span>
+      </div>
+      <ul id="strategyMessages" class="messages" aria-live="polite"></ul>
+    </div>
     <form class="meta-form" id="metaForm" onsubmit="return false">
-      <label>Organisation or function
-        <input id="orgName" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Acme EMEA Marketing">
-      </label>
+      <input type="hidden" id="orgName">
       <label>Assessor
         <input id="assessor" type="text" maxlength="60" autocomplete="off" placeholder="e.g. initials or name">
       </label>
@@ -270,6 +280,7 @@
 
 <script src="lib/xlsx.full.min.js"></script>
 <script src="lib/exceljs.min.js"></script>
-<script src="js/app.js?v=3"></script>
+<script src="js/workmatik-shared.js?v=1"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>

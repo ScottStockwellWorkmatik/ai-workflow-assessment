@@ -1,0 +1,39 @@
+/* Workmatik shared look and feel. Linked by every app before its own stylesheet.
+   Tokens and base rules match the current apps exactly, so linking this file changes nothing
+   until an app drops its own copy. New shared parts: organisation block and footer. */
+:root {
+  --orange: #F25D27;
+  --orange-dark: #C8431A;
+  --blue: #5DC1FF;
+  --navy: #024873;
+  --pale: #EAF9FF;
+  --grey: #D9D9D9;
+  --ink: #0D0D0D;
+  --muted: #4A5560;
+  --white: #FFFFFF;
+  --line: #D9D9D9;
+  --lv0: #D9D9D9;
+  --lv1: #B5E3FF;
+  --lv2: #5DC1FF;
+  --lv3: #1F7CAD;
+  --lv4: #024873;
+  --font: "Neue Haas Grotesk Display Pro", "Neue Haas Grotesk Text Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --radius: 10px;
+}
+
+/* Organisation block: sits directly under the orange header in every app */
+.org-block { background: var(--pale); border-bottom: 1px solid var(--line); padding: 12px 0; }
+.org-inner { max-width: 1040px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap: 12px 16px; align-items: end; }
+.org-field { display: block; margin: 0; }
+.org-label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.org-field input { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid #8A949C; border-radius: 8px; background: var(--white); color: var(--ink); margin-top: 0; font-weight: 400; }
+.org-chip { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); }
+.org-chip.org-missing { color: #7A3200; font-weight: 600; }
+@media (max-width: 720px) { .org-inner { grid-template-columns: 1fr; } }
+
+/* Footer */
+.site-footer { border-top: 1px solid var(--line); margin-top: 24px; padding: 16px 0 28px; font-size: 12px; color: var(--muted); }
+.site-footer .wrap { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+
+/* Warning banner for file and organisation mismatches */
+.org-warning { background: #FFF3EC; border-left: 4px solid var(--orange); border-radius: 6px; padding: 10px 14px; margin: 0 0 14px; font-size: 13px; color: var(--ink); }
